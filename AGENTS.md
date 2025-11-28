@@ -41,6 +41,16 @@ read all necessary information of these modules
   - zig build
   - zig test
   - bun test
+  
+## plan part 3
+
+now we want to setup a simple bun benchmark for a simple flex columns with a lot of boxes inside.
+
+using bun for running the bench script.
+
+then I want to see if instead of using NAPI and instead using bun ffi is faster. try creating another Zig library that uses C abi and export instead of NAPI
+
+add this to the benchmark and see which one is faster. try to still keep the same yoga-layout API
 
 ## progress
 
