@@ -383,8 +383,12 @@ const lib = dlopen(getLibPath(), {
   // Callback helper functions
   ygCreateSize: { args: ["f32", "f32"], returns: "u64" },
   ygStoreMeasureResult: { args: ["f32", "f32"], returns: "void" },
+  ygStoreBaselineResult: { args: ["f32"], returns: "void" },
   ygNodeSetMeasureFuncTrampoline: { args: ["ptr", "ptr"], returns: "void" },
   ygNodeUnsetMeasureFuncTrampoline: { args: ["ptr"], returns: "void" },
+  ygNodeSetBaselineFuncTrampoline: { args: ["ptr", "ptr"], returns: "void" },
+  ygNodeUnsetBaselineFuncTrampoline: { args: ["ptr"], returns: "void" },
+  ygNodeFreeCallbacks: { args: ["ptr"], returns: "void" },
 });
 
 const yg = lib.symbols;
@@ -857,19 +861,21 @@ export class Node {
     this.unsetBaselineFunc(); // Clean up existing callback
 
     if (baselineFunc) {
-      // Create a JSCallback that matches Yoga's expected baseline function signature
+      // Use trampoline approach to work around ARM64 ABI limitations
+      // The trampoline stores the result via ygStoreBaselineResult
       this.baselineCallback = new JSCallback(
         (nodePtr: Pointer, width: number, height: number) => {
-          return baselineFunc(width, height);
+          const result = baselineFunc(width, height);
+          yg.ygStoreBaselineResult(result);
         },
         {
           args: [FFIType.ptr, FFIType.f32, FFIType.f32],
-          returns: FFIType.f32,
+          returns: FFIType.void,
         }
       );
 
       if (this.baselineCallback.ptr) {
-        yg.ygNodeSetBaselineFunc(this.ptr, this.baselineCallback.ptr);
+        yg.ygNodeSetBaselineFuncTrampoline(this.ptr, this.baselineCallback.ptr);
       }
     }
   }
@@ -879,7 +885,7 @@ export class Node {
       this.baselineCallback.close();
       this.baselineCallback = null;
     }
-    yg.ygNodeUnsetBaselineFunc(this.ptr);
+    yg.ygNodeUnsetBaselineFuncTrampoline(this.ptr);
   }
 
   hasBaselineFunc(): boolean {

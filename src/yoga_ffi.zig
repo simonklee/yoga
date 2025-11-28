@@ -776,19 +776,62 @@ pub export fn ygNodeGetAlwaysFormsContainingBlock(node: YGNodeConstRef) bool {
 }
 
 //=============================================================================
-// CALLBACK HELPER FUNCTIONS - MEASURE FUNCTION WORKAROUND
+// CALLBACK HELPER FUNCTIONS - MEASURE/BASELINE FUNCTION WORKAROUND
 //=============================================================================
 // 
 // The ARM64 calling convention returns struct { float, float } in s0 and s1 registers.
 // However, Bun FFI callbacks can only return via x0 (integer) or d0 (single float register).
 // Since d0 != s0+s1 on ARM64, we can't properly return YGSize from a JSCallback.
+// Single f32 returns also have issues on ARM64 (returned in s0, not readable by Bun).
 //
-// Workaround: Use a trampoline that stores results via thread-local storage.
+// Workaround: Use trampolines that store results via thread-local storage.
 //=============================================================================
 
-/// Thread-local storage for measure function results
+/// Thread-local storage for callback results
 var tls_measure_width: f32 = 0;
 var tls_measure_height: f32 = 0;
+var tls_baseline_result: f32 = 0;
+
+/// Callback context - stores both measure and baseline callbacks for a node
+const CallbackContext = struct {
+    measure_callback: ?*const anyopaque = null,
+    baseline_callback: ?*const anyopaque = null,
+};
+
+/// Allocator for callback contexts
+var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+
+/// Get or create callback context for a node
+fn getOrCreateContext(node: YGNodeRef) *CallbackContext {
+    const existing = c.YGNodeGetContext(node);
+    if (existing) |ptr| {
+        return @ptrCast(@alignCast(ptr));
+    }
+    // Create new context
+    const ctx = gpa.allocator().create(CallbackContext) catch @panic("Failed to allocate callback context");
+    ctx.* = CallbackContext{};
+    c.YGNodeSetContext(node, ctx);
+    return ctx;
+}
+
+/// Get callback context for a node (const version)
+fn getContext(node: YGNodeConstRef) ?*CallbackContext {
+    const existing = c.YGNodeGetContext(node);
+    if (existing) |ptr| {
+        return @ptrCast(@alignCast(ptr));
+    }
+    return null;
+}
+
+/// Free callback context for a node
+fn freeContext(node: YGNodeRef) void {
+    const existing = c.YGNodeGetContext(node);
+    if (existing) |ptr| {
+        const ctx: *CallbackContext = @ptrCast(@alignCast(ptr));
+        gpa.allocator().destroy(ctx);
+        c.YGNodeSetContext(node, null);
+    }
+}
 
 /// Store measure result - call this from JS callback before returning
 pub export fn ygStoreMeasureResult(width: f32, height: f32) void {
@@ -796,9 +839,16 @@ pub export fn ygStoreMeasureResult(width: f32, height: f32) void {
     tls_measure_height = height;
 }
 
+/// Store baseline result - call this from JS callback before returning
+pub export fn ygStoreBaselineResult(baseline: f32) void {
+    tls_baseline_result = baseline;
+}
+
 /// JS callback type for measure function trampoline
-/// Note: YGMeasureMode is already c_uint from the C binding
 const JsMeasureTrampoline = *const fn (?*anyopaque, f32, c.YGMeasureMode, f32, c.YGMeasureMode) callconv(.c) void;
+
+/// JS callback type for baseline function trampoline
+const JsBaselineTrampoline = *const fn (?*anyopaque, f32, f32) callconv(.c) void;
 
 /// Internal measure function that reads from TLS
 fn internalMeasureFunc(
@@ -808,38 +858,86 @@ fn internalMeasureFunc(
     height: f32,
     heightMode: YGMeasureMode,
 ) callconv(.c) YGSize {
-    // Get the JS callback pointer from node context
-    const context = c.YGNodeGetContext(node);
-    if (context) |ctx| {
-        // Cast to our trampoline type
-        const trampoline: JsMeasureTrampoline = @ptrCast(@alignCast(ctx));
-        // Call the trampoline - it will store results via ygStoreMeasureResult
-        trampoline(@ptrCast(@constCast(node)), width, widthMode, height, heightMode);
+    if (getContext(node)) |ctx| {
+        if (ctx.measure_callback) |cb| {
+            const trampoline: JsMeasureTrampoline = @ptrCast(@alignCast(cb));
+            trampoline(@ptrCast(@constCast(node)), width, widthMode, height, heightMode);
+        }
     }
-    // Return the stored values
     return YGSize{ .width = tls_measure_width, .height = tls_measure_height };
 }
 
+/// Internal baseline function that reads from TLS
+fn internalBaselineFunc(
+    node: YGNodeConstRef,
+    width: f32,
+    height: f32,
+) callconv(.c) f32 {
+    if (getContext(node)) |ctx| {
+        if (ctx.baseline_callback) |cb| {
+            const trampoline: JsBaselineTrampoline = @ptrCast(@alignCast(cb));
+            trampoline(@ptrCast(@constCast(node)), width, height);
+        }
+    }
+    return tls_baseline_result;
+}
+
 /// Set measure function using the trampoline approach
-/// The trampoline_ptr should be a JSCallback that:
-/// 1. Computes width and height
-/// 2. Calls ygStoreMeasureResult(width, height)
 pub export fn ygNodeSetMeasureFuncTrampoline(node: YGNodeRef, trampoline_ptr: ?*const anyopaque) void {
     if (trampoline_ptr) |ptr| {
-        // Store the JS callback pointer in node context
-        c.YGNodeSetContext(node, @constCast(ptr));
-        // Set our internal measure function
+        const ctx = getOrCreateContext(node);
+        ctx.measure_callback = ptr;
         c.YGNodeSetMeasureFunc(node, &internalMeasureFunc);
     } else {
-        c.YGNodeSetContext(node, null);
-        c.YGNodeSetMeasureFunc(node, null);
+        if (getContext(node)) |ctx| {
+            ctx.measure_callback = null;
+            // Only clear measure func, keep baseline if set
+            c.YGNodeSetMeasureFunc(node, null);
+        }
     }
 }
 
 /// Unset the trampoline-based measure function
 pub export fn ygNodeUnsetMeasureFuncTrampoline(node: YGNodeRef) void {
-    c.YGNodeSetContext(node, null);
-    c.YGNodeSetMeasureFunc(node, null);
+    if (getContext(node)) |ctx| {
+        ctx.measure_callback = null;
+        c.YGNodeSetMeasureFunc(node, null);
+        // Free context if both callbacks are null
+        if (ctx.baseline_callback == null) {
+            freeContext(node);
+        }
+    }
+}
+
+/// Set baseline function using the trampoline approach
+pub export fn ygNodeSetBaselineFuncTrampoline(node: YGNodeRef, trampoline_ptr: ?*const anyopaque) void {
+    if (trampoline_ptr) |ptr| {
+        const ctx = getOrCreateContext(node);
+        ctx.baseline_callback = ptr;
+        c.YGNodeSetBaselineFunc(node, &internalBaselineFunc);
+    } else {
+        if (getContext(node)) |ctx| {
+            ctx.baseline_callback = null;
+            c.YGNodeSetBaselineFunc(node, null);
+        }
+    }
+}
+
+/// Unset the trampoline-based baseline function
+pub export fn ygNodeUnsetBaselineFuncTrampoline(node: YGNodeRef) void {
+    if (getContext(node)) |ctx| {
+        ctx.baseline_callback = null;
+        c.YGNodeSetBaselineFunc(node, null);
+        // Free context if both callbacks are null
+        if (ctx.measure_callback == null) {
+            freeContext(node);
+        }
+    }
+}
+
+/// Free all callbacks for a node (call before freeing the node)
+pub export fn ygNodeFreeCallbacks(node: YGNodeRef) void {
+    freeContext(node);
 }
 
 /// Legacy helper - kept for compatibility but prefer trampoline approach

@@ -1,5 +1,5 @@
 import { expect, test, describe } from "bun:test";
-import Yoga, { Node, Config, MeasureMode, Direction, FlexDirection, Edge } from "./index";
+import Yoga, { Node, Config, MeasureMode, Direction, FlexDirection, Edge, Align } from "./index";
 
 describe("Node", () => {
   test("create and free", () => {
@@ -67,14 +67,12 @@ describe("MeasureFunc", () => {
     root.setHeight(200);
 
     const child = Node.create();
+    // Prevent default stretch behavior so child uses measured size
+    child.setAlignSelf(Align.FlexStart);
     let measureCalled = false;
-    let measureWidth = 0;
-    let measureWidthMode = -1;
 
     child.setMeasureFunc((width, widthMode, height, heightMode) => {
       measureCalled = true;
-      measureWidth = width;
-      measureWidthMode = widthMode;
       return { width: 50, height: 25 };
     });
 
@@ -94,7 +92,8 @@ describe("MeasureFunc", () => {
     root.setFlexDirection(FlexDirection.Row);
 
     const child = Node.create();
-    child.setFlexGrow(1);
+    // Don't use flexGrow - let child determine its own size via measure
+    child.setAlignSelf(Align.FlexStart);
 
     let receivedWidthMode = -1;
     let receivedHeightMode = -1;
@@ -127,6 +126,11 @@ describe("DirtiedFunc", () => {
 
     // Only nodes with measure function can be marked dirty
     root.setMeasureFunc(() => ({ width: 100, height: 100 }));
+    
+    // Must calculate layout first so node becomes "clean"
+    // Dirtied callback only fires when transitioning from clean to dirty
+    root.calculateLayout(100, 100, Direction.LTR);
+    
     root.setDirtiedFunc(() => {
       dirtiedCalled = true;
     });
@@ -198,6 +202,40 @@ describe("Margins, Padding, Border", () => {
     // Child should be smaller due to borders
     expect(child.getComputedWidth()).toBe(90);
     expect(child.getComputedHeight()).toBe(90);
+
+    root.freeRecursive();
+  });
+});
+
+describe("BaselineFunc", () => {
+  test("setBaselineFunc callback affects layout", () => {
+    const root = Node.create();
+    root.setWidth(200);
+    root.setHeight(100);
+    root.setFlexDirection(FlexDirection.Row);
+    root.setAlignItems(Align.Baseline);
+
+    const child1 = Node.create();
+    child1.setWidth(50);
+    child1.setHeight(40);
+    let baselineCalled = false;
+    child1.setBaselineFunc((width, height) => {
+      baselineCalled = true;
+      return 30; // baseline at 30px from top
+    });
+
+    const child2 = Node.create();
+    child2.setWidth(50);
+    child2.setHeight(60);
+
+    root.insertChild(child1, 0);
+    root.insertChild(child2, 1);
+    root.calculateLayout(200, 100, Direction.LTR);
+
+    expect(baselineCalled).toBe(true);
+    // child1 should be offset down to align its baseline (30px) with child2's baseline
+    expect(child1.getComputedTop()).toBe(30);
+    expect(child2.getComputedTop()).toBe(0);
 
     root.freeRecursive();
   });
