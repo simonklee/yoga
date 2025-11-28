@@ -105,6 +105,91 @@ Create a Bun FFI wrapper for Facebook's Yoga layout engine with a yoga-layout co
 - [ ] `setDirtiedFunc()` - Requires JSCallback for native-to-JS calls
 - [ ] Style value getters returning YGValue (would need struct handling)
 
+## OpenTUI Compatibility Analysis
+
+Analyzed [sst/opentui](https://github.com/sst/opentui) to check compatibility with this package.
+
+### Methods OpenTUI Uses (All Implemented ✅)
+
+**Config:**
+- `Config.create()` ✅
+- `config.setUseWebDefaults()` ✅
+- `config.setPointScaleFactor()` ✅
+
+**Node Creation/Destruction:**
+- `Node.create(config)` ✅
+- `node.free()` ✅
+
+**Child Management:**
+- `insertChild()` ✅
+- `removeChild()` ✅
+
+**Layout:**
+- `calculateLayout()` ✅
+- `markDirty()` ✅
+- `isDirty()` ✅
+- `getComputedLayout()` ✅
+
+**Style Setters (all implemented):**
+- `setDisplay()` ✅
+- `setFlexDirection()` ✅
+- `setFlexWrap()` ✅
+- `setFlexGrow()` ✅
+- `setFlexShrink()` ✅
+- `setFlexBasis()` ✅
+- `setAlignItems()` ✅
+- `setAlignSelf()` ✅
+- `setJustifyContent()` ✅
+- `setPositionType()` ✅
+- `setPosition()` ✅
+- `setPositionAuto()` ✅
+- `setOverflow()` ✅
+- `setWidth()` / `setHeight()` ✅
+- `setMinWidth()` / `setMinHeight()` ✅
+- `setMaxWidth()` / `setMaxHeight()` ✅
+- `setMargin()` ✅
+- `setPadding()` ✅
+- `setBorder()` ✅
+- `setGap()` ✅
+
+**Style Getters:**
+- `getFlexDirection()` ✅
+
+### Critical Missing Method ❌
+
+**`setMeasureFunc()`** - Used by OpenTUI's `TextBufferRenderable` and `EditBufferRenderable` for custom text measurement. This is essential for text nodes that need to calculate their intrinsic dimensions.
+
+**How OpenTUI uses it:**
+```typescript
+// From TextBufferRenderable.ts
+const measureFunc = (
+  width: number,
+  widthMode: MeasureMode,
+  height: number,
+  heightMode: MeasureMode,
+): { width: number; height: number } => {
+  // ... measurement logic
+  return { width: measuredWidth, height: measuredHeight }
+}
+this.yogaNode.setMeasureFunc(measureFunc)
+```
+
+**Implementation Challenge:**
+- Requires native-to-JS callback support in Bun FFI
+- Bun FFI supports `JSCallback` but passing it to Yoga's C API requires careful memory management
+- The Zig code already exports `ygNodeSetMeasureFunc()` but TypeScript bindings don't expose it
+
+### Compatibility Summary
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Basic layout | ✅ Ready | All style setters/getters work |
+| Child management | ✅ Ready | insert/remove children work |
+| Layout calculation | ✅ Ready | calculateLayout + getComputedLayout work |
+| Text measurement | ❌ Blocked | Needs `setMeasureFunc()` |
+
+**Verdict:** This package can replace `yoga-layout` for OpenTUI's basic layout needs, but **text components (`TextBufferRenderable`, `EditBufferRenderable`, `Text`, `TextNode`) will not work** until `setMeasureFunc()` is implemented.
+
 ## Build Commands
 ```bash
 zig build                        # Debug build
