@@ -1,62 +1,74 @@
-## goal
+## Goal
 
-create a NAPI module for yoga. that will be used from Bun. 
+Create a Bun FFI wrapper for Facebook's Yoga layout engine, providing a yoga-layout compatible API.
 
-using same exact layout as yoga-layout
+**Why FFI over NAPI?** Benchmarks showed FFI is faster than NAPI for this use case.
 
-see node_modules/yoga-layout/dist/src/index.d.ts for the shape of yoga-layout API
+## Project Structure
 
-## how to read github repos files
+```
+bun-yoga/
+├── src/
+│   ├── yoga_ffi.zig   # Zig FFI exports (C ABI)
+│   └── index.ts       # TypeScript FFI bindings + Node/Config classes
+├── build.zig          # Zig build configuration
+├── build.zig.zon      # Dependencies (yoga from Facebook)
+├── bench.ts           # Benchmark vs yoga-layout
+├── package.json
+└── tsconfig.json
+```
 
-`curl gitchamber.com` to see how to list, read github files and also search in them and paginate files
+## How It Works
 
-## tools to use
+1. **Zig layer** (`yoga_ffi.zig`): Uses `@cImport` to import Yoga C headers directly, exports functions with C ABI using `export fn`
+2. **TypeScript layer** (`src/index.ts`): Uses `bun:ffi` to load the dynamic library and provides yoga-layout compatible `Node` and `Config` classes
 
-zig. the one already installed which is 0.15
-https://github.com/cztomsik/napigen for generating the napi bindgen. read the api and examples
-NAPI for connecting our zig code to bun
-bun to test the generated NAPI module
-for the yoga access in Bun: https://github.com/cmsommer/yoga-zig or https://github.com/Sobeston/yoga.zig (a bit older)
+## Build Commands
 
+```bash
+# Build the library
+zig build                      # Debug build
+zig build -Doptimize=ReleaseFast  # Release build
 
-read all necessary information of these modules
+# Run tests
+zig build test                 # Zig tests
+bun test                       # TypeScript tests
 
+# Run benchmark
+bun run bench.ts
+```
 
-## plan part 1
+## API
 
-- create simple zig basic structure, for a library. mimic what napigen examples did
-- research what data types napigen has and what kind of functions you can create.
-- think if we need to update a bit the yoga-layout API for our use case to simplify our jobs
-- install yoga in build.zig. try both if first does not work
-- try creating a simple test from zig to see if yoga works there
-- try exposing a super basic function or class to see if NAPI works
-- try to acccess it in a Bun script. write a bun test to make sure it works as expected
+The API mirrors yoga-layout:
 
+```typescript
+import Yoga, { Node, Config, Edge, FlexDirection } from "bun-yoga";
 
-## plan part 2
+const config = Config.create();
+const root = Node.create(config);
 
-- start implementing the full yoga-layout API in zig. so that the NAPI module will look the same in Bun and js part. if required, you can also add some .js glue code. if necessary you can update the API to make this easier. not strictly same as yoga-layout
-- the feedback loo will be
-  - update zig code
-  - zig build
-  - zig test
-  - bun test
-  
-## plan part 3
+root.setFlexDirection(FlexDirection.Column);
+root.setWidth(100);
+root.setHeight(100);
 
-now we want to setup a simple bun benchmark for a simple flex columns with a lot of boxes inside.
+const child = Node.create(config);
+child.setFlexGrow(1);
+root.insertChild(child, 0);
 
-using bun for running the bench script.
+root.calculateLayout(100, 100);
+console.log(root.getComputedLayout());
 
-then I want to see if instead of using NAPI and instead using bun ffi is faster. try creating another Zig library that uses C abi and export instead of NAPI
+root.freeRecursive();
+config.free();
+```
 
-add this to the benchmark and see which one is faster. try to still keep the same yoga-layout API
+## Dependencies
 
-## progress
+- **Zig 0.15+** - Build system and native code
+- **Facebook Yoga** - Layout engine (fetched via build.zig.zon)
+- **Bun** - JavaScript runtime with FFI support
 
-keep a progress.md file with the current progress and decisions made in the project so you can read it again after compaction. keep important todos there too. with the APIs implemented and to implement
+## Progress Tracking
 
-every new message check if this file already exists in case you have been revived after compaction
-
-
-commit after every important step is accomplished. commit after every bullet point of part 1
+See `progress.md` for detailed progress and decisions.

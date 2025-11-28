@@ -1,16 +1,23 @@
 {
-  "name": "yoga-napi",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
+  "name": "bun-yoga",
+  "version": "0.1.0",
+  "description": "FFI wrapper for Facebook's Yoga layout engine for Bun",
+  "module": "src/index.ts",
+  "main": "src/index.ts",
+  "type": "module",
+  "license": "MIT",
   "author": "remorses",
-  "license": "ISC",
-  "packageManager": "pnpm@10.18.1",
-  "dependencies": {
+  "scripts": {
+    "build": "zig build -Doptimize=ReleaseFast",
+    "build:dev": "zig build",
+    "test": "bun test",
+    "bench": "bun run bench.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
     "yoga-layout": "^3.2.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
