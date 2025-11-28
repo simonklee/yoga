@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2
+
+- Include source files in npm package
+- Add `./src` export for direct TypeScript imports
+
 ## 0.2.1
 
 ### Breaking Changes
