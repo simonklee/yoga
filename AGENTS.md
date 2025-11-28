@@ -90,3 +90,16 @@ after any meaningful change update (or create if missing ) CHANGELOG.md and add 
 ```
 
 then bump the package.json version too.
+
+## Publishing
+
+NEVER run `npm publish` locally. CI handles publishing automatically on push to main. Local publishing causes issues because:
+- The `dist/` folder may have outdated or missing binaries for other platforms
+- CI builds fresh binaries for all platforms (darwin-arm64, darwin-x64, linux-arm64, linux-x64)
+- Publishing locally with stale binaries breaks the package for users
+
+When you make a change:
+1. Bump the package.json version
+2. Update CHANGELOG.md
+3. Commit and push to main
+4. CI will build and publish automatically
