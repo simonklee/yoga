@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- Fixed `MeasureFunction` type to use `MeasureMode` instead of `number` for `widthMode` and `heightMode` parameters
+
 ## 0.2.2
 
 - Include source files in npm package
