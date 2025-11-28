@@ -77,3 +77,16 @@ See `progress.md` for detailed progress and decisions.
 ## reading github files
 
 do `curl gitchamber.com` to read list, read, search github files
+
+## changelog
+
+after any meaningful change update (or create if missing ) CHANGELOG.md and add the changes made in a new version like 
+
+```md
+## 0.0.0
+
+- implemented something
+- done something
+```
+
+then bump the package.json version too.
