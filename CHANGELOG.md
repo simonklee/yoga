@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Added Windows x64 support
+- Added Bun tests to CI for all platforms (Linux, macOS, Windows)
+
 ## 0.1.1
 
 - Fixed ARM64 ABI compatibility for callback functions (`setMeasureFunc`, `setBaselineFunc`)

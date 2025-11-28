@@ -12,6 +12,8 @@ import embeddedDarwinX64 from "../dist/darwin-x64/libyoga.dylib" with { type: "f
 import embeddedLinuxX64 from "../dist/linux-x64/libyoga.so" with { type: "file" };
 // @ts-ignore - import attribute for embedding binary files
 import embeddedLinuxArm64 from "../dist/linux-arm64/libyoga.so" with { type: "file" };
+// @ts-ignore - import attribute for embedding binary files
+import embeddedWindowsX64 from "../dist/windows-x64/yoga.dll" with { type: "file" };
 
 // Platform detection
 function getPlatformTarget(): string {
@@ -22,6 +24,8 @@ function getPlatformTarget(): string {
     return a === "arm64" ? "darwin-arm64" : "darwin-x64";
   } else if (p === "linux") {
     return a === "arm64" ? "linux-arm64" : "linux-x64";
+  } else if (p === "win32") {
+    return "windows-x64";
   }
   throw new Error(`Unsupported platform: ${p}-${a}`);
 }
@@ -33,12 +37,14 @@ function getEmbeddedLib(): string | undefined {
     "darwin-x64": embeddedDarwinX64,
     "linux-x64": embeddedLinuxX64,
     "linux-arm64": embeddedLinuxArm64,
+    "windows-x64": embeddedWindowsX64,
   };
   return libs[target];
 }
 
 function getLibPath(): string {
-  const libName = `libyoga.${suffix}`;
+  // On Windows, Zig produces yoga.dll instead of libyoga.dll
+  const libName = platform() === "win32" ? `yoga.${suffix}` : `libyoga.${suffix}`;
   const target = getPlatformTarget();
 
   // Check local development path (zig-out) first for development
