@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.5
+
+### Fixes
+- Fixed memory corruption on Linux ("malloc(): unaligned tcache chunk detected") when rapidly freeing and creating nodes with measure functions
+- Fixed callback context not being freed before node free, causing use-after-free when Yoga reuses memory
+- Changed callback context allocator from Zig's GeneralPurposeAllocator to C allocator for glibc compatibility
+- Made thread-local storage variables actually threadlocal to prevent race conditions
+- Added context cleanup to `ygNodeFree`, `ygNodeFreeRecursive`, and `ygNodeReset`
+
 ## 0.2.4
 
 - Reduced binary size by stripping debug symbols and using single-threaded mode

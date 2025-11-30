@@ -123,14 +123,31 @@ pub export fn ygNodeClone(node: YGNodeConstRef) YGNodeRef {
     return c.YGNodeClone(node);
 }
 
-/// Frees a Yoga node
+/// Frees a Yoga node (also cleans up any callback context)
 pub export fn ygNodeFree(node: YGNodeRef) void {
+    // Free callback context BEFORE freeing the node to prevent use-after-free
+    // when Yoga internally accesses the context during cleanup
+    freeContext(node);
     c.YGNodeFree(node);
 }
 
 /// Frees a Yoga node and all its children recursively
 pub export fn ygNodeFreeRecursive(node: YGNodeRef) void {
+    // Free callback contexts for all children first (recursively)
+    freeContextRecursive(node);
     c.YGNodeFreeRecursive(node);
+}
+
+/// Helper to recursively free callback contexts for a node and its children
+fn freeContextRecursive(node: YGNodeRef) void {
+    const childCount = c.YGNodeGetChildCount(node);
+    for (0..childCount) |i| {
+        const child = c.YGNodeGetChild(node, i);
+        if (child) |ch| {
+            freeContextRecursive(ch);
+        }
+    }
+    freeContext(node);
 }
 
 /// Finalizes a node without disconnecting from owner/children
@@ -140,6 +157,8 @@ pub export fn ygNodeFinalize(node: YGNodeRef) void {
 
 /// Resets a node to its default state
 pub export fn ygNodeReset(node: YGNodeRef) void {
+    // Free callback context before reset since reset clears all state
+    freeContext(node);
     c.YGNodeReset(node);
 }
 
@@ -797,10 +816,10 @@ pub export fn ygNodeGetAlwaysFormsContainingBlock(node: YGNodeConstRef) bool {
 // Workaround: Use trampolines that store results via thread-local storage.
 //=============================================================================
 
-/// Thread-local storage for callback results
-var tls_measure_width: f32 = 0;
-var tls_measure_height: f32 = 0;
-var tls_baseline_result: f32 = 0;
+/// Thread-local storage for callback results (must be threadlocal for safety)
+threadlocal var tls_measure_width: f32 = 0;
+threadlocal var tls_measure_height: f32 = 0;
+threadlocal var tls_baseline_result: f32 = 0;
 
 /// Callback context - stores both measure and baseline callbacks for a node
 const CallbackContext = struct {
@@ -808,8 +827,10 @@ const CallbackContext = struct {
     baseline_callback: ?*const anyopaque = null,
 };
 
-/// Allocator for callback contexts
-var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+/// Use C allocator for FFI compatibility with glibc malloc/free on Linux.
+/// Zig's GeneralPurposeAllocator can cause heap corruption ("malloc(): unaligned 
+/// tcache chunk detected") when mixed with glibc's thread-cached malloc.
+const callback_allocator = std.heap.c_allocator;
 
 /// Get or create callback context for a node
 fn getOrCreateContext(node: YGNodeRef) *CallbackContext {
@@ -817,8 +838,8 @@ fn getOrCreateContext(node: YGNodeRef) *CallbackContext {
     if (existing) |ptr| {
         return @ptrCast(@alignCast(ptr));
     }
-    // Create new context
-    const ctx = gpa.allocator().create(CallbackContext) catch @panic("Failed to allocate callback context");
+    // Create new context using C allocator for malloc/free compatibility
+    const ctx = callback_allocator.create(CallbackContext) catch @panic("Failed to allocate callback context");
     ctx.* = CallbackContext{};
     c.YGNodeSetContext(node, ctx);
     return ctx;
@@ -838,7 +859,7 @@ fn freeContext(node: YGNodeRef) void {
     const existing = c.YGNodeGetContext(node);
     if (existing) |ptr| {
         const ctx: *CallbackContext = @ptrCast(@alignCast(ptr));
-        gpa.allocator().destroy(ctx);
+        callback_allocator.destroy(ctx);
         c.YGNodeSetContext(node, null);
     }
 }
