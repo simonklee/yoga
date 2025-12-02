@@ -4,31 +4,25 @@ import { existsSync } from "fs";
 
 // Import native libraries with { type: "file" } for bun compile support
 // This tells Bun to embed the file and return a real filesystem path
-// @ts-ignore
-import embeddedLibDarwinArm64 from "../dist/darwin-arm64/libyoga.dylib" with { type: "file" };
-// @ts-ignore
-import embeddedLibDarwinX64 from "../dist/darwin-x64/libyoga.dylib" with { type: "file" };
-// @ts-ignore
-import embeddedLibLinuxX64 from "../dist/linux-x64/libyoga.so" with { type: "file" };
-// @ts-ignore
-import embeddedLibLinuxArm64 from "../dist/linux-arm64/libyoga.so" with { type: "file" };
-// @ts-ignore
-import embeddedLibWindows from "../dist/windows-x64/yoga.dll" with { type: "file" };
-
-function getEmbeddedLib(): string | undefined {
-  if (process.platform === "darwin" && process.arch === "arm64") {
-    return embeddedLibDarwinArm64;
-  } else if (process.platform === "darwin" && process.arch === "x64") {
-    return embeddedLibDarwinX64;
-  } else if (process.platform === "linux" && process.arch === "x64") {
-    return embeddedLibLinuxX64;
-  } else if (process.platform === "linux" && process.arch === "arm64") {
-    return embeddedLibLinuxArm64;
-  } else if (process.platform === "win32") {
-    return embeddedLibWindows;
+// Using top-level await import() to load only the current platform's library
+const embeddedLib: string | undefined = await (async () => {
+  try {
+    if (process.platform === "darwin" && process.arch === "arm64") {
+      return (await import("../dist/darwin-arm64/libyoga.dylib", { with: { type: "file" } })).default;
+    } else if (process.platform === "darwin" && process.arch === "x64") {
+      return (await import("../dist/darwin-x64/libyoga.dylib", { with: { type: "file" } })).default;
+    } else if (process.platform === "linux" && process.arch === "x64") {
+      return (await import("../dist/linux-x64/libyoga.so", { with: { type: "file" } })).default;
+    } else if (process.platform === "linux" && process.arch === "arm64") {
+      return (await import("../dist/linux-arm64/libyoga.so", { with: { type: "file" } })).default;
+    } else if (process.platform === "win32") {
+      return (await import("../dist/windows-x64/yoga.dll", { with: { type: "file" } })).default;
+    }
+  } catch {
+    // Library not found for this platform
   }
   return undefined;
-}
+})();
 
 function getLibPath(): string {
   // Check local development path (zig-out) first for development
@@ -46,9 +40,8 @@ function getLibPath(): string {
   }
 
   // Check embedded libraries (for bun compile)
-  const embedded = getEmbeddedLib();
-  if (embedded && existsSync(embedded)) {
-    return embedded;
+  if (embeddedLib && existsSync(embeddedLib)) {
+    return embeddedLib;
   }
 
   throw new Error(
