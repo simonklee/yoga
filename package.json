@@ -1,18 +1,17 @@
 {
   "name": "bun-yoga",
-  "version": "0.2.7",
+  "version": "0.2.9",
   "description": "FFI wrapper for Facebook's Yoga layout engine for Bun",
-  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
     },
     "./src": {
-      "import": "./src/index.ts",
-      "types": "./src/index.ts"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "files": [
@@ -35,6 +34,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/node": "^24.10.1",
     "bun-types": "latest",
     "typescript": "^5.0.0",
     "yoga-layout": "^3.2.1"

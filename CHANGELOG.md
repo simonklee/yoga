@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.8
+
+### Breaking Changes
+- Converted output from ES modules to CommonJS
+- Removed `type: "module"` from package.json
+
+### Changes
+- Updated tsconfig to compile to CommonJS module output
+- Changed platform detection to use `process.platform` and `process.arch` directly
+- Replaced `import.meta.dir` with `__dirname` for CommonJS compatibility
+- Added `@types/node` as dev dependency for Node.js type definitions
+
 ## 0.2.7
 
 ### Fixes

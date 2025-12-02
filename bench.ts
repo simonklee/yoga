@@ -1,10 +1,10 @@
 /**
  * Bun-Yoga Benchmark
- * 
+ *
  * Compares our FFI implementation with yoga-layout (WASM)
  */
 
-import Yoga, { Node, Config, Edge, FlexDirection, Justify, Align, Direction } from "./src/index.ts";
+import Yoga, { Node, Config, Edge, FlexDirection, Justify, Align, Direction } from "./src/index";
 import OfficialYoga from "yoga-layout";
 
 interface BenchResult {

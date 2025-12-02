@@ -1,70 +1,45 @@
-import { dlopen, type Pointer, suffix, JSCallback, FFIType } from "bun:ffi";
+import { dlopen, suffix, JSCallback, FFIType, type Pointer } from "bun:ffi";
 import { join } from "path";
 import { existsSync } from "fs";
-import { arch, platform } from "os";
-
-// Platform detection
-function getPlatformTarget(): string {
-  const p = platform();
-  const a = arch();
-
-  if (p === "darwin") {
-    return a === "arm64" ? "darwin-arm64" : "darwin-x64";
-  } else if (p === "linux") {
-    return a === "arm64" ? "linux-arm64" : "linux-x64";
-  } else if (p === "win32") {
-    return "windows-x64";
-  }
-  throw new Error(`Unsupported platform: ${p}-${a}`);
-}
 
 // Lazy load embedded libraries only for the current platform (for bun compile)
-// Using dynamic imports to avoid parse-time errors when dist files don't exist
+// Using separate require for each platform to enable static analysis
 function getEmbeddedLib(): string | undefined {
-  const target = getPlatformTarget();
   try {
-    // Use require() which is evaluated at runtime, not parse time
-    // The type: "file" attribute embeds the binary in bun compile builds
-    switch (target) {
-      case "darwin-arm64":
-        // @ts-ignore
-        return require("../dist/darwin-arm64/libyoga.dylib");
-      case "darwin-x64":
-        // @ts-ignore
-        return require("../dist/darwin-x64/libyoga.dylib");
-      case "linux-x64":
-        // @ts-ignore
-        return require("../dist/linux-x64/libyoga.so");
-      case "linux-arm64":
-        // @ts-ignore
-        return require("../dist/linux-arm64/libyoga.so");
-      case "windows-x64":
-        // @ts-ignore
-        return require("../dist/windows-x64/yoga.dll");
-      default:
-        return undefined;
+    if (process.platform === "darwin" && process.arch === "arm64") {
+      // @ts-ignore
+      return require("../dist/darwin-arm64/libyoga.dylib");
+    } else if (process.platform === "darwin" && process.arch === "x64") {
+      // @ts-ignore
+      return require("../dist/darwin-x64/libyoga.dylib");
+    } else if (process.platform === "linux" && process.arch === "x64") {
+      // @ts-ignore
+      return require("../dist/linux-x64/libyoga.so");
+    } else if (process.platform === "linux" && process.arch === "arm64") {
+      // @ts-ignore
+      return require("../dist/linux-arm64/libyoga.so");
+    } else if (process.platform === "win32") {
+      // @ts-ignore
+      return require("../dist/windows-x64/yoga.dll");
     }
+    return undefined;
   } catch {
     return undefined;
   }
 }
 
 function getLibPath(): string {
-  // On Windows, Zig produces yoga.dll instead of libyoga.dll
-  const libName = platform() === "win32" ? `yoga.${suffix}` : `libyoga.${suffix}`;
-  const target = getPlatformTarget();
-
   // Check local development path (zig-out) first for development
-  const devPath = join(import.meta.dir, "..", "zig-out", "lib", libName);
-  if (existsSync(devPath)) {
-    return devPath;
-  }
-
-  // On Windows, Zig may put DLLs in bin/ instead of lib/
-  if (platform() === "win32") {
-    const devPathBin = join(import.meta.dir, "..", "zig-out", "bin", libName);
-    if (existsSync(devPathBin)) {
-      return devPathBin;
+  if (process.platform === "win32") {
+    if (existsSync(join(__dirname, "..", "zig-out", "lib", `yoga.${suffix}`))) {
+      return join(__dirname, "..", "zig-out", "lib", `yoga.${suffix}`);
+    }
+    if (existsSync(join(__dirname, "..", "zig-out", "bin", `yoga.${suffix}`))) {
+      return join(__dirname, "..", "zig-out", "bin", `yoga.${suffix}`);
+    }
+  } else {
+    if (existsSync(join(__dirname, "..", "zig-out", "lib", `libyoga.${suffix}`))) {
+      return join(__dirname, "..", "zig-out", "lib", `libyoga.${suffix}`);
     }
   }
 
@@ -75,14 +50,31 @@ function getLibPath(): string {
   }
 
   // Check npm package dist paths
-  const distPath = join(import.meta.dir, "..", "dist", target, libName);
-  if (existsSync(distPath)) {
-    return distPath;
+  if (process.platform === "darwin" && process.arch === "arm64") {
+    if (existsSync(join(__dirname, "..", "dist", "darwin-arm64", `libyoga.${suffix}`))) {
+      return join(__dirname, "..", "dist", "darwin-arm64", `libyoga.${suffix}`);
+    }
+  } else if (process.platform === "darwin" && process.arch === "x64") {
+    if (existsSync(join(__dirname, "..", "dist", "darwin-x64", `libyoga.${suffix}`))) {
+      return join(__dirname, "..", "dist", "darwin-x64", `libyoga.${suffix}`);
+    }
+  } else if (process.platform === "linux" && process.arch === "x64") {
+    if (existsSync(join(__dirname, "..", "dist", "linux-x64", `libyoga.${suffix}`))) {
+      return join(__dirname, "..", "dist", "linux-x64", `libyoga.${suffix}`);
+    }
+  } else if (process.platform === "linux" && process.arch === "arm64") {
+    if (existsSync(join(__dirname, "..", "dist", "linux-arm64", `libyoga.${suffix}`))) {
+      return join(__dirname, "..", "dist", "linux-arm64", `libyoga.${suffix}`);
+    }
+  } else if (process.platform === "win32") {
+    if (existsSync(join(__dirname, "..", "dist", "windows-x64", `yoga.${suffix}`))) {
+      return join(__dirname, "..", "dist", "windows-x64", `yoga.${suffix}`);
+    }
   }
 
   throw new Error(
-    `Could not find native library ${libName}. ` +
-      `Looked in:\n  - ${devPath}\n  - ${distPath}\n` +
+    `Could not find native library. ` +
+      `Platform: ${process.platform}-${process.arch}\n` +
       `Make sure to run 'zig build' or install the package with binaries.`
   );
 }
@@ -530,9 +522,9 @@ export type DirtiedFunction = (node: Node) => void;
 export class Node {
   private ptr: Pointer;
   private _freed: boolean = false;
-  private measureCallback: JSCallback | null = null;
-  private baselineCallback: JSCallback | null = null;
-  private dirtiedCallback: JSCallback | null = null;
+  private measureCallback: InstanceType<typeof JSCallback> | null = null;
+  private baselineCallback: InstanceType<typeof JSCallback> | null = null;
+  private dirtiedCallback: InstanceType<typeof JSCallback> | null = null;
 
   private constructor(ptr: Pointer) {
     this.ptr = ptr;

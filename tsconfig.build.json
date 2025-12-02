@@ -5,9 +5,10 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
-    "allowImportingTsExtensions": false,
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "types": ["bun-types"]
+    "esModuleInterop": true,
+    "types": ["node", "bun-types"]
   },
   "include": ["src/index.ts"],
   "exclude": ["**/*.test.ts", "bench.ts"]
