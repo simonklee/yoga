@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.12
+
+- Fixed bun compile native library embedding using dynamic import() with { type: "file" }
+
 ## 0.2.11
 
 ### Changes

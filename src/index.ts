@@ -8,14 +8,19 @@ import { existsSync } from "fs";
 const embeddedLib: string | undefined = await (async () => {
   try {
     if (process.platform === "darwin" && process.arch === "arm64") {
+      // @ts-ignore
       return (await import("../dist/darwin-arm64/libyoga.dylib", { with: { type: "file" } })).default;
     } else if (process.platform === "darwin" && process.arch === "x64") {
+      // @ts-ignore
       return (await import("../dist/darwin-x64/libyoga.dylib", { with: { type: "file" } })).default;
     } else if (process.platform === "linux" && process.arch === "x64") {
+      // @ts-ignore
       return (await import("../dist/linux-x64/libyoga.so", { with: { type: "file" } })).default;
     } else if (process.platform === "linux" && process.arch === "arm64") {
+      // @ts-ignore
       return (await import("../dist/linux-arm64/libyoga.so", { with: { type: "file" } })).default;
     } else if (process.platform === "win32") {
+      // @ts-ignore
       return (await import("../dist/windows-x64/yoga.dll", { with: { type: "file" } })).default;
     }
   } catch {
