@@ -319,6 +319,16 @@ pub export fn ygNodeLayoutGetPadding(node: YGNodeConstRef, edge: YGEdge) f32 {
     return c.YGNodeLayoutGetPadding(node, edge);
 }
 
+/// Gets the measured width of the node, before layout rounding
+pub export fn ygNodeLayoutGetRawWidth(node: YGNodeConstRef) f32 {
+    return c.YGNodeLayoutGetRawWidth(node);
+}
+
+/// Gets the measured height of the node, before layout rounding
+pub export fn ygNodeLayoutGetRawHeight(node: YGNodeConstRef) f32 {
+    return c.YGNodeLayoutGetRawHeight(node);
+}
+
 //=============================================================================
 // STYLE - LAYOUT PROPERTIES
 //=============================================================================

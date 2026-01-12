@@ -400,6 +400,8 @@ const lib = dlopen(getLibPath(), {
   ygNodeLayoutGetBorder: { args: ["ptr", "i32"], returns: "f32" },
   ygNodeLayoutGetMargin: { args: ["ptr", "i32"], returns: "f32" },
   ygNodeLayoutGetPadding: { args: ["ptr", "i32"], returns: "f32" },
+  ygNodeLayoutGetRawWidth: { args: ["ptr"], returns: "f32" },
+  ygNodeLayoutGetRawHeight: { args: ["ptr"], returns: "f32" },
 
   // Style properties - Layout
   ygNodeStyleSetDirection: { args: ["ptr", "i32"], returns: "void" },
@@ -750,6 +752,16 @@ export class Node {
   getComputedHeight(): number {
     if (this._freed) return 0;
     return yg.ygNodeLayoutGetHeight(this.ptr);
+  }
+
+  getComputedRawWidth(): number {
+    if (this._freed) return 0;
+    return yg.ygNodeLayoutGetRawWidth(this.ptr);
+  }
+
+  getComputedRawHeight(): number {
+    if (this._freed) return 0;
+    return yg.ygNodeLayoutGetRawHeight(this.ptr);
   }
 
   getComputedBorder(edge: number): number {

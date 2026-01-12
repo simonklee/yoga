@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.15
+
+- Upgraded Yoga dependency from commit `909e4bea` (Dec 2024) to `8ba025e8` (Nov 2025)
+- This includes 46 upstream commits with internal improvements and bug fixes
+- No breaking API changes detected
+
 ## 0.2.14
 
 - **Full Native API Completeness**: `bun-yoga` now exports **100%** of the Yoga C API functions.

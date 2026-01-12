@@ -6,8 +6,8 @@
 
     .dependencies = .{
         .yoga = .{
-            .url = "git+https://github.com/facebook/yoga#909e4bea6e6764e4028d5e47b2f67486e6d26c7e",
-            .hash = "1220ef123b055ea7424e6004cd18daf05d70e01e95d5901f61a76d91cf6379af1fe9",
+            .url = "git+https://github.com/facebook/yoga#8ba025e8b19d2c873ebf497bd1a44b4b06a2d342",
+            .hash = "N-V-__8AAAFx1wA7_j_lvi90uwFKBTbknML1SMFx1wRlwIzy",
         },
     },
 
