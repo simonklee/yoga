@@ -35,9 +35,9 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.10.7",
     "bun-types": "latest",
-    "typescript": "^5.0.0",
+    "typescript": "^5.9.3",
     "yoga-layout": "^3.2.1"
   }
 }
