@@ -1,6 +1,7 @@
 # bun-yoga
 
-A fast FFI wrapper for Facebook's [Yoga](https://yogalayout.dev/) layout engine, providing a `yoga-layout` compatible API for Bun.
+A fast FFI wrapper for Facebook's [Yoga](https://yogalayout.dev/) layout
+engine, providing a `yoga-layout` compatible API for Bun.
 
 ## Why FFI over NAPI?
 
@@ -10,13 +11,13 @@ Benchmarks showed FFI is faster than NAPI for this use case.
 
 Pre-built binaries are included in the npm package for:
 
-| Platform | Architecture | Binary |
-|----------|--------------|--------|
+| Platform | Architecture          | Binary          |
+| -------- | --------------------- | --------------- |
 | macOS    | ARM64 (Apple Silicon) | `libyoga.dylib` |
-| macOS    | x64 (Intel) | `libyoga.dylib` |
-| Linux    | x64 | `libyoga.so` |
-| Linux    | ARM64 | `libyoga.so` |
-| Windows  | x64 | `yoga.dll` |
+| macOS    | x64 (Intel)           | `libyoga.dylib` |
+| Linux    | x64                   | `libyoga.so`    |
+| Linux    | ARM64                 | `libyoga.so`    |
+| Windows  | x64                   | `yoga.dll`      |
 
 The correct binary is automatically loaded at runtime based on your platform.
 

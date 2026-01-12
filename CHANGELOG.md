@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.17
+
+- Updated package metadata and lockfile.
+- Clarified package description.
+
 ## 0.2.16
 
 - Fixed `hasDirtiedFunc()` to handle null/zero pointers correctly.
