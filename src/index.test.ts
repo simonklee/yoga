@@ -154,6 +154,20 @@ describe("DirtiedFunc", () => {
 
     root.free();
   });
+
+  test("hasDirtiedFunc reflects callback state", () => {
+    const node = Node.create();
+    expect(node.hasDirtiedFunc()).toBe(false);
+
+    node.setMeasureFunc(() => ({ width: 10, height: 10 }));
+    node.setDirtiedFunc(() => {});
+    expect(node.hasDirtiedFunc()).toBe(true);
+
+    node.unsetDirtiedFunc();
+    expect(node.hasDirtiedFunc()).toBe(false);
+
+    node.free();
+  });
 });
 
 describe("Margins, Padding, Border", () => {
@@ -217,6 +231,49 @@ describe("Margins, Padding, Border", () => {
     expect(child.getComputedHeight()).toBe(90);
 
     root.freeRecursive();
+  });
+});
+
+describe("Max/Fit/Stretch units", () => {
+  test("Unit includes max/fit/stretch", () => {
+    expect(Unit.MaxContent).toBe(4);
+    expect(Unit.FitContent).toBe(5);
+    expect(Unit.Stretch).toBe(6);
+  });
+
+  test("setters update value units", () => {
+    const node = Node.create();
+
+    const cases = [
+      { set: () => node.setFlexBasisMaxContent(), get: () => node.getFlexBasis(), unit: Unit.MaxContent },
+      { set: () => node.setFlexBasisFitContent(), get: () => node.getFlexBasis(), unit: Unit.FitContent },
+      { set: () => node.setFlexBasisStretch(), get: () => node.getFlexBasis(), unit: Unit.Stretch },
+      { set: () => node.setWidthMaxContent(), get: () => node.getWidth(), unit: Unit.MaxContent },
+      { set: () => node.setWidthFitContent(), get: () => node.getWidth(), unit: Unit.FitContent },
+      { set: () => node.setWidthStretch(), get: () => node.getWidth(), unit: Unit.Stretch },
+      { set: () => node.setHeightMaxContent(), get: () => node.getHeight(), unit: Unit.MaxContent },
+      { set: () => node.setHeightFitContent(), get: () => node.getHeight(), unit: Unit.FitContent },
+      { set: () => node.setHeightStretch(), get: () => node.getHeight(), unit: Unit.Stretch },
+      { set: () => node.setMinWidthMaxContent(), get: () => node.getMinWidth(), unit: Unit.MaxContent },
+      { set: () => node.setMinWidthFitContent(), get: () => node.getMinWidth(), unit: Unit.FitContent },
+      { set: () => node.setMinWidthStretch(), get: () => node.getMinWidth(), unit: Unit.Stretch },
+      { set: () => node.setMinHeightMaxContent(), get: () => node.getMinHeight(), unit: Unit.MaxContent },
+      { set: () => node.setMinHeightFitContent(), get: () => node.getMinHeight(), unit: Unit.FitContent },
+      { set: () => node.setMinHeightStretch(), get: () => node.getMinHeight(), unit: Unit.Stretch },
+      { set: () => node.setMaxWidthMaxContent(), get: () => node.getMaxWidth(), unit: Unit.MaxContent },
+      { set: () => node.setMaxWidthFitContent(), get: () => node.getMaxWidth(), unit: Unit.FitContent },
+      { set: () => node.setMaxWidthStretch(), get: () => node.getMaxWidth(), unit: Unit.Stretch },
+      { set: () => node.setMaxHeightMaxContent(), get: () => node.getMaxHeight(), unit: Unit.MaxContent },
+      { set: () => node.setMaxHeightFitContent(), get: () => node.getMaxHeight(), unit: Unit.FitContent },
+      { set: () => node.setMaxHeightStretch(), get: () => node.getMaxHeight(), unit: Unit.Stretch },
+    ];
+
+    for (const { set, get, unit } of cases) {
+      set();
+      expect(get().unit).toBe(unit);
+    }
+
+    node.free();
   });
 });
 

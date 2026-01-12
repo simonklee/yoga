@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.16
+
+- Fixed `hasDirtiedFunc()` to handle null/zero pointers correctly.
+- Added MaxContent/FitContent/Stretch units plus JS setters for flex-basis and size constraints.
+- Hardened completeness scripts to include static exports, non-enumerable exports, and enum `ToString` declarations.
+- Added tests for new unit setters and script helpers.
+
 ## 0.2.15
 
 - Upgraded Yoga dependency from commit `909e4bea` (Dec 2024) to `8ba025e8` (Nov 2025)

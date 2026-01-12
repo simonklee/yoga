@@ -192,6 +192,9 @@ export const Unit = {
   Point: 1,
   Percent: 2,
   Auto: 3,
+  MaxContent: 4,
+  FitContent: 5,
+  Stretch: 6,
 } as const;
 export type Unit = (typeof Unit)[keyof typeof Unit];
 
@@ -269,6 +272,9 @@ export const UNIT_UNDEFINED = Unit.Undefined;
 export const UNIT_POINT = Unit.Point;
 export const UNIT_PERCENT = Unit.Percent;
 export const UNIT_AUTO = Unit.Auto;
+export const UNIT_MAX_CONTENT = Unit.MaxContent;
+export const UNIT_FIT_CONTENT = Unit.FitContent;
+export const UNIT_STRETCH = Unit.Stretch;
 
 export const MEASURE_MODE_UNDEFINED = MeasureMode.Undefined;
 export const MEASURE_MODE_EXACTLY = MeasureMode.Exactly;
@@ -437,6 +443,9 @@ const lib = dlopen(getLibPath(), {
   ygNodeStyleSetFlexBasis: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetFlexBasisPercent: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetFlexBasisAuto: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetFlexBasisMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetFlexBasisFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetFlexBasisStretch: { args: ["ptr"], returns: "void" },
 
   // Style properties - Position
   ygNodeStyleSetPosition: { args: ["ptr", "i32", "f32"], returns: "void" },
@@ -464,17 +473,35 @@ const lib = dlopen(getLibPath(), {
   ygNodeStyleSetWidth: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetWidthPercent: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetWidthAuto: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetWidthMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetWidthFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetWidthStretch: { args: ["ptr"], returns: "void" },
   ygNodeStyleSetHeight: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetHeightPercent: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetHeightAuto: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetHeightMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetHeightFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetHeightStretch: { args: ["ptr"], returns: "void" },
   ygNodeStyleSetMinWidth: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetMinWidthPercent: { args: ["ptr", "f32"], returns: "void" },
+  ygNodeStyleSetMinWidthMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMinWidthFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMinWidthStretch: { args: ["ptr"], returns: "void" },
   ygNodeStyleSetMinHeight: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetMinHeightPercent: { args: ["ptr", "f32"], returns: "void" },
+  ygNodeStyleSetMinHeightMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMinHeightFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMinHeightStretch: { args: ["ptr"], returns: "void" },
   ygNodeStyleSetMaxWidth: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetMaxWidthPercent: { args: ["ptr", "f32"], returns: "void" },
+  ygNodeStyleSetMaxWidthMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMaxWidthFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMaxWidthStretch: { args: ["ptr"], returns: "void" },
   ygNodeStyleSetMaxHeight: { args: ["ptr", "f32"], returns: "void" },
   ygNodeStyleSetMaxHeightPercent: { args: ["ptr", "f32"], returns: "void" },
+  ygNodeStyleSetMaxHeightMaxContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMaxHeightFitContent: { args: ["ptr"], returns: "void" },
+  ygNodeStyleSetMaxHeightStretch: { args: ["ptr"], returns: "void" },
 
   // Style properties - Aspect Ratio
   ygNodeStyleSetAspectRatio: { args: ["ptr", "f32"], returns: "void" },
@@ -944,6 +971,21 @@ export class Node {
     yg.ygNodeStyleSetFlexBasisAuto(this.ptr);
   }
 
+  setFlexBasisMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetFlexBasisMaxContent(this.ptr);
+  }
+
+  setFlexBasisFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetFlexBasisFitContent(this.ptr);
+  }
+
+  setFlexBasisStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetFlexBasisStretch(this.ptr);
+  }
+
   setPosition(edge: Edge, position: number | `${number}%` | undefined): void {
     if (this._freed) return;
     const { unit, asNumber } = parseValue(position);
@@ -1063,6 +1105,21 @@ export class Node {
     yg.ygNodeStyleSetWidthAuto(this.ptr);
   }
 
+  setWidthMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetWidthMaxContent(this.ptr);
+  }
+
+  setWidthFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetWidthFitContent(this.ptr);
+  }
+
+  setWidthStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetWidthStretch(this.ptr);
+  }
+
   setHeight(height: number | "auto" | `${number}%` | undefined): void {
     if (this._freed) return;
     const { unit, asNumber } = parseValue(height);
@@ -1087,6 +1144,21 @@ export class Node {
     yg.ygNodeStyleSetHeightAuto(this.ptr);
   }
 
+  setHeightMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetHeightMaxContent(this.ptr);
+  }
+
+  setHeightFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetHeightFitContent(this.ptr);
+  }
+
+  setHeightStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetHeightStretch(this.ptr);
+  }
+
   setMinWidth(minWidth: number | `${number}%` | undefined): void {
     if (this._freed) return;
     const { unit, asNumber } = parseValue(minWidth);
@@ -1102,6 +1174,21 @@ export class Node {
     if (minWidth !== undefined) {
       yg.ygNodeStyleSetMinWidthPercent(this.ptr, minWidth);
     }
+  }
+
+  setMinWidthMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMinWidthMaxContent(this.ptr);
+  }
+
+  setMinWidthFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMinWidthFitContent(this.ptr);
+  }
+
+  setMinWidthStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMinWidthStretch(this.ptr);
   }
 
   setMinHeight(minHeight: number | `${number}%` | undefined): void {
@@ -1121,6 +1208,21 @@ export class Node {
     }
   }
 
+  setMinHeightMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMinHeightMaxContent(this.ptr);
+  }
+
+  setMinHeightFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMinHeightFitContent(this.ptr);
+  }
+
+  setMinHeightStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMinHeightStretch(this.ptr);
+  }
+
   setMaxWidth(maxWidth: number | `${number}%` | undefined): void {
     if (this._freed) return;
     const { unit, asNumber } = parseValue(maxWidth);
@@ -1138,6 +1240,21 @@ export class Node {
     }
   }
 
+  setMaxWidthMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMaxWidthMaxContent(this.ptr);
+  }
+
+  setMaxWidthFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMaxWidthFitContent(this.ptr);
+  }
+
+  setMaxWidthStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMaxWidthStretch(this.ptr);
+  }
+
   setMaxHeight(maxHeight: number | `${number}%` | undefined): void {
     if (this._freed) return;
     const { unit, asNumber } = parseValue(maxHeight);
@@ -1153,6 +1270,21 @@ export class Node {
     if (maxHeight !== undefined) {
       yg.ygNodeStyleSetMaxHeightPercent(this.ptr, maxHeight);
     }
+  }
+
+  setMaxHeightMaxContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMaxHeightMaxContent(this.ptr);
+  }
+
+  setMaxHeightFitContent(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMaxHeightFitContent(this.ptr);
+  }
+
+  setMaxHeightStretch(): void {
+    if (this._freed) return;
+    yg.ygNodeStyleSetMaxHeightStretch(this.ptr);
   }
 
   setAspectRatio(aspectRatio: number | undefined): void {
@@ -1349,7 +1481,7 @@ export class Node {
 
   hasDirtiedFunc(): boolean {
     if (this._freed) return false;
-    return yg.ygNodeGetDirtiedFunc(this.ptr) !== null;
+    return Boolean(yg.ygNodeGetDirtiedFunc(this.ptr));
   }
 }
 
@@ -1492,6 +1624,9 @@ export default {
   UNIT_POINT,
   UNIT_PERCENT,
   UNIT_AUTO,
+  UNIT_MAX_CONTENT,
+  UNIT_FIT_CONTENT,
+  UNIT_STRETCH,
   MEASURE_MODE_UNDEFINED,
   MEASURE_MODE_EXACTLY,
   MEASURE_MODE_AT_MOST,
