@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Test script to verify bun-yoga works correctly when compiled with `bun build --compile`
+ * Test script to verify @simonklee/yoda works correctly when compiled with `bun build --compile`
  * 
  * This reproduces the issue where dlopen fails with $bunfs paths in compiled executables.
  * 
@@ -13,36 +13,38 @@ import { join } from "node:path"
 import { tmpdir } from "node:os"
 
 const rootDir = join(import.meta.dir, "..")
-const testDir = join(tmpdir(), "bun-yoga-compile-test")
-const pkgCopy = join(testDir, "bun-yoga")
+const packageName = "@simonklee/yoda"
+const packageDirName = "simonklee-yoda"
+const testDir = join(tmpdir(), "yoda-compile-test")
+const pkgCopy = join(testDir, packageDirName)
 const appDir = join(testDir, "app")
 const execPath = join(testDir, "test-exec")
 
-console.log("=== Testing bun-yoga with bun compile ===\n")
+console.log(`=== Testing ${packageName} with bun compile ===\n`)
 
 // Clean up previous test
 rmSync(testDir, { recursive: true, force: true })
 mkdirSync(testDir, { recursive: true })
 
-// Copy bun-yoga to temp (simulates installed package)
-console.log("1. Copying bun-yoga to temp directory...")
+// Copy package to temp (simulates installed package)
+console.log(`1. Copying ${packageName} to temp directory...`)
 cpSync(rootDir, pkgCopy, { recursive: true })
 // Remove .git to avoid issues
 rmSync(join(pkgCopy, ".git"), { recursive: true, force: true })
 rmSync(join(pkgCopy, "node_modules"), { recursive: true, force: true })
 
-// Create app that depends on the copied bun-yoga
+// Create app that depends on the copied package
 mkdirSync(appDir, { recursive: true })
 writeFileSync(join(appDir, "package.json"), JSON.stringify({
   name: "compile-test",
   dependencies: {
-    "bun-yoga": `file:${pkgCopy}`
+    [packageName]: `file:${pkgCopy}`
   }
 }, null, 2))
 
 // Create test script
 writeFileSync(join(appDir, "test.ts"), `
-import { Node } from "bun-yoga/src";
+import { Node } from "@simonklee/yoda/src";
 
 const node = Node.create();
 node.setWidth(100);

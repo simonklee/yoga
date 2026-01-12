@@ -1,11 +1,7 @@
-# bun-yoga
+# Yoda bindings
 
-A fast FFI wrapper for Facebook's [Yoga](https://yogalayout.dev/) layout
-engine, providing a `yoga-layout` compatible API for Bun.
-
-## Why FFI over NAPI?
-
-Benchmarks showed FFI is faster than NAPI for this use case.
+Fast Bun FFI bindings for Facebook's [Yoga](https://yogalayout.dev/) layout
+engine, providing a `yoga-layout` compatible API built on Zig.
 
 ## Supported Platforms
 
@@ -24,13 +20,13 @@ The correct binary is automatically loaded at runtime based on your platform.
 ## Installation
 
 ```bash
-bun add bun-yoga
+bun add @simonklee/yoda
 ```
 
 ## Usage
 
 ```typescript
-import Yoga, { Node, Config, Edge, FlexDirection } from "bun-yoga";
+import Yoga, { Node, Config, Edge, FlexDirection } from "@simonklee/yoda";
 
 const config = Config.create();
 const root = Node.create(config);
@@ -57,11 +53,34 @@ The API mirrors [yoga-layout](https://www.npmjs.com/package/yoga-layout). All en
 
 ## Building from source
 
-Requires Zig 0.15+:
+Requirements: Bun and Zig 0.15.1+.
 
 ```bash
+# Build the native library (debug)
+zig build
+
+# Build the native library (release)
 zig build -Doptimize=ReleaseFast
+
+# Build TypeScript to dist/
+bun run build
+
+# Tests
+zig build test
+bun test
 ```
+
+## Benchmarks
+
+```bash
+bun run bench
+```
+
+## Development notes
+
+- `src/yoga_ffi.zig` exposes Yoga's C API via Zig `export fn`.
+- `src/index.ts` uses `bun:ffi` and prefers a local `zig-out` library when present,
+  falling back to the platform-specific binary in `dist/`.
 
 ## License
 

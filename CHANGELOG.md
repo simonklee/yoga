@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.20
+
+- Updated README title and tagline.
+
+## 0.2.19
+
+- Renamed package to `@simonklee/yoda` and updated docs/scripts to match.
+
+## 0.2.18
+
+- Updated README and AGENTS with current project details and workflows.
+
 ## 0.2.17
 
 - Updated package metadata and lockfile.

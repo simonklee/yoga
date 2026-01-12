@@ -1,116 +1,79 @@
-## Goal
+## Project Overview
 
-Create a Bun FFI wrapper for Facebook's Yoga layout engine, providing a yoga-layout compatible API.
+`@simonklee/yoda` is a Bun FFI wrapper around Facebook's Yoga layout engine. Zig builds a
+dynamic library from Yoga's C/C++ sources, and `src/index.ts` loads it via
+`bun:ffi` to expose a `yoga-layout` compatible API (`Node`, `Config`, enums).
 
-**Why FFI over NAPI?** Benchmarks showed FFI is faster than NAPI for this use case.
+## Key Paths
 
-## Project Structure
+- `src/yoga_ffi.zig`: Zig FFI exports (C ABI) + tests.
+- `src/index.ts`: TypeScript bindings, runtime loader, Node/Config classes.
+- `build.zig` / `build.zig.zon`: Zig build and Yoga dependency.
+- `scripts/`: API completeness checks and compile helpers.
+- `progress.md`: project decisions and progress notes.
+- `CHANGELOG.md` + `package.json`: versioning and release notes.
 
-```
-bun-yoga/
-├── src/
-│   ├── yoga_ffi.zig   # Zig FFI exports (C ABI)
-│   └── index.ts       # TypeScript FFI bindings + Node/Config classes
-├── build.zig          # Zig build configuration
-├── build.zig.zon      # Dependencies (yoga from Facebook)
-├── bench.ts           # Benchmark vs yoga-layout
-├── package.json
-└── tsconfig.json
-```
+## Commands
 
-## How It Works
-
-1. **Zig layer** (`yoga_ffi.zig`): Uses `@cImport` to import Yoga C headers directly, exports functions with C ABI using `export fn`
-2. **TypeScript layer** (`src/index.ts`): Uses `bun:ffi` to load the dynamic library and provides yoga-layout compatible `Node` and `Config` classes
-
-## Build Commands
+Native build:
 
 ```bash
-# Build the library
-zig build                      # Debug build
-zig build -Doptimize=ReleaseFast  # Release build
-
-# Run tests
-zig build test                 # Zig tests
-bun test                       # TypeScript tests
-
-# Run benchmark
-bun run bench.ts
+zig build                       # Debug build (required at start of work)
+zig build -Doptimize=ReleaseFast # Release build
+bun run build:zig                # Release build via package.json
+bun run build:zig:dev            # Debug build via package.json
 ```
 
-## API
+TypeScript build:
 
-The API mirrors yoga-layout:
-
-```typescript
-import Yoga, { Node, Config, Edge, FlexDirection } from "bun-yoga";
-
-const config = Config.create();
-const root = Node.create(config);
-
-root.setFlexDirection(FlexDirection.Column);
-root.setWidth(100);
-root.setHeight(100);
-
-const child = Node.create(config);
-child.setFlexGrow(1);
-root.insertChild(child, 0);
-
-root.calculateLayout(100, 100);
-console.log(root.getComputedLayout());
-
-root.freeRecursive();
-config.free();
+```bash
+bun run build                    # tsc -> dist/
 ```
 
-## Dependencies
+Tests:
 
-- **Zig 0.15+** - Build system and native code
-- **Facebook Yoga** - Layout engine (fetched via build.zig.zon)
-- **Bun** - JavaScript runtime with FFI support
-
-## Progress Tracking
-
-See `progress.md` for detailed progress and decisions.
-
-
-## reading github files
-
-do `curl gitchamber.com` to read list, read, search github files
-
-## changelog
-
-after any meaningful change update (or create if missing ) CHANGELOG.md and add the changes made in a new version like 
-
-```md
-## 0.0.0
-
-- implemented something
-- done something
+```bash
+zig build test                   # Zig tests
+bun test                         # Bun tests (includes .test.ts in scripts/)
 ```
 
-then bump the package.json version too.
+Bench:
 
-## Publishing
+```bash
+bun run bench
+bun run bench.ts                 # Direct file execution (optional)
+```
 
-NEVER run `npm publish` locally. CI handles publishing automatically on push to main. Local publishing causes issues because:
+Manual helpers (not wired to npm scripts):
+
+```bash
+bun run scripts/check-completeness.ts
+bun run scripts/check-native-completeness.ts
+bun run scripts/test-compile.ts
+```
+
+## Workflow Requirements
+
+- Always start by running `zig build` to ensure no stale binaries.
+- Reproduce every bug with a `zig build test` or `bun test` before fixing it.
+- After meaningful changes: update `CHANGELOG.md` and bump `package.json` version.
+
+## GitHub File Lookup
+
+Use `curl gitchamber.com` to list, read, and search GitHub files when needed.
+
+## Publishing (Do Not Do Locally)
+
+NEVER run `npm publish` locally. CI handles publishing on push to main. Local
+publishing causes issues because:
+
 - The `dist/` folder may have outdated or missing binaries for other platforms
 - CI builds fresh binaries for all platforms (darwin-arm64, darwin-x64, linux-arm64, linux-x64)
 - Publishing locally with stale binaries breaks the package for users
 
 When you make a change:
+
 1. Bump the package.json version
 2. Update CHANGELOG.md
 3. Commit and push to main
 4. CI will build and publish automatically
-
-
-## working on the library
-
-every time you start working on the project build zig first so we know there are no stale binaries
-
-```bash
-zig build
-```
-
-then try updating zig code and build again to fix issues. every issue must first reproduced with a zig test or bun test. before fixing it

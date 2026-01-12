@@ -1,5 +1,5 @@
 /**
- * Bun-Yoga Benchmark
+ * @simonklee/yoda Benchmark
  *
  * Compares our FFI implementation with yoga-layout (WASM)
  */
@@ -235,7 +235,7 @@ function columnWithBoxes_Official(numBoxes: number) {
 // ============================================================================
 
 console.log("=".repeat(70));
-console.log("Bun-Yoga Benchmark: FFI vs yoga-layout (WASM)");
+console.log("@simonklee/yoda Benchmark: FFI vs yoga-layout (WASM)");
 console.log("=".repeat(70));
 
 // Simple layout

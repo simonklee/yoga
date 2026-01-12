@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "bun-yoga",
+      "name": "@simonklee/yoda",
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "^24.10.1",
