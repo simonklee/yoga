@@ -104,6 +104,26 @@ pub export fn ygConfigIsExperimentalFeatureEnabled(config: YGConfigConstRef, fea
     return c.YGConfigIsExperimentalFeatureEnabled(config, feature);
 }
 
+/// Sets a custom logger
+pub export fn ygConfigSetLogger(config: YGConfigRef, logger: ?*const anyopaque) void {
+    c.YGConfigSetLogger(config, @ptrCast(logger));
+}
+
+/// Sets config context
+pub export fn ygConfigSetContext(config: YGConfigRef, context: ?*anyopaque) void {
+    c.YGConfigSetContext(config, context);
+}
+
+/// Gets config context
+pub export fn ygConfigGetContext(config: YGConfigConstRef) ?*anyopaque {
+    return c.YGConfigGetContext(config);
+}
+
+/// Sets clone node function
+pub export fn ygConfigSetCloneNodeFunc(config: YGConfigRef, cloneNodeFunc: ?*const anyopaque) void {
+    c.YGConfigSetCloneNodeFunc(config, @ptrCast(cloneNodeFunc));
+}
+
 //=============================================================================
 // NODE CREATION AND MANAGEMENT
 //=============================================================================
@@ -606,6 +626,21 @@ pub export fn ygNodeStyleSetWidthAuto(node: YGNodeRef) void {
     c.YGNodeStyleSetWidthAuto(node);
 }
 
+/// Sets width to max content
+pub export fn ygNodeStyleSetWidthMaxContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetWidthMaxContent(node);
+}
+
+/// Sets width to fit content
+pub export fn ygNodeStyleSetWidthFitContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetWidthFitContent(node);
+}
+
+/// Sets width to stretch
+pub export fn ygNodeStyleSetWidthStretch(node: YGNodeRef) void {
+    c.YGNodeStyleSetWidthStretch(node);
+}
+
 /// Gets width
 pub export fn ygNodeStyleGetWidth(node: YGNodeConstRef) YGValue {
     return c.YGNodeStyleGetWidth(node);
@@ -626,6 +661,21 @@ pub export fn ygNodeStyleSetHeightAuto(node: YGNodeRef) void {
     c.YGNodeStyleSetHeightAuto(node);
 }
 
+/// Sets height to max content
+pub export fn ygNodeStyleSetHeightMaxContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetHeightMaxContent(node);
+}
+
+/// Sets height to fit content
+pub export fn ygNodeStyleSetHeightFitContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetHeightFitContent(node);
+}
+
+/// Sets height to stretch
+pub export fn ygNodeStyleSetHeightStretch(node: YGNodeRef) void {
+    c.YGNodeStyleSetHeightStretch(node);
+}
+
 /// Gets height
 pub export fn ygNodeStyleGetHeight(node: YGNodeConstRef) YGValue {
     return c.YGNodeStyleGetHeight(node);
@@ -639,6 +689,21 @@ pub export fn ygNodeStyleSetMinWidth(node: YGNodeRef, minWidth: f32) void {
 /// Sets min width (percent)
 pub export fn ygNodeStyleSetMinWidthPercent(node: YGNodeRef, minWidth: f32) void {
     c.YGNodeStyleSetMinWidthPercent(node, minWidth);
+}
+
+/// Sets min width to max content
+pub export fn ygNodeStyleSetMinWidthMaxContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMinWidthMaxContent(node);
+}
+
+/// Sets min width to fit content
+pub export fn ygNodeStyleSetMinWidthFitContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMinWidthFitContent(node);
+}
+
+/// Sets min width to stretch
+pub export fn ygNodeStyleSetMinWidthStretch(node: YGNodeRef) void {
+    c.YGNodeStyleSetMinWidthStretch(node);
 }
 
 /// Gets min width
@@ -656,6 +721,21 @@ pub export fn ygNodeStyleSetMinHeightPercent(node: YGNodeRef, minHeight: f32) vo
     c.YGNodeStyleSetMinHeightPercent(node, minHeight);
 }
 
+/// Sets min height to max content
+pub export fn ygNodeStyleSetMinHeightMaxContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMinHeightMaxContent(node);
+}
+
+/// Sets min height to fit content
+pub export fn ygNodeStyleSetMinHeightFitContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMinHeightFitContent(node);
+}
+
+/// Sets min height to stretch
+pub export fn ygNodeStyleSetMinHeightStretch(node: YGNodeRef) void {
+    c.YGNodeStyleSetMinHeightStretch(node);
+}
+
 /// Gets min height
 pub export fn ygNodeStyleGetMinHeight(node: YGNodeConstRef) YGValue {
     return c.YGNodeStyleGetMinHeight(node);
@@ -671,6 +751,21 @@ pub export fn ygNodeStyleSetMaxWidthPercent(node: YGNodeRef, maxWidth: f32) void
     c.YGNodeStyleSetMaxWidthPercent(node, maxWidth);
 }
 
+/// Sets max width to max content
+pub export fn ygNodeStyleSetMaxWidthMaxContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMaxWidthMaxContent(node);
+}
+
+/// Sets max width to fit content
+pub export fn ygNodeStyleSetMaxWidthFitContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMaxWidthFitContent(node);
+}
+
+/// Sets max width to stretch
+pub export fn ygNodeStyleSetMaxWidthStretch(node: YGNodeRef) void {
+    c.YGNodeStyleSetMaxWidthStretch(node);
+}
+
 /// Gets max width
 pub export fn ygNodeStyleGetMaxWidth(node: YGNodeConstRef) YGValue {
     return c.YGNodeStyleGetMaxWidth(node);
@@ -684,6 +779,21 @@ pub export fn ygNodeStyleSetMaxHeight(node: YGNodeRef, maxHeight: f32) void {
 /// Sets max height (percent)
 pub export fn ygNodeStyleSetMaxHeightPercent(node: YGNodeRef, maxHeight: f32) void {
     c.YGNodeStyleSetMaxHeightPercent(node, maxHeight);
+}
+
+/// Sets max height to max content
+pub export fn ygNodeStyleSetMaxHeightMaxContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMaxHeightMaxContent(node);
+}
+
+/// Sets max height to fit content
+pub export fn ygNodeStyleSetMaxHeightFitContent(node: YGNodeRef) void {
+    c.YGNodeStyleSetMaxHeightFitContent(node);
+}
+
+/// Sets max height to stretch
+pub export fn ygNodeStyleSetMaxHeightStretch(node: YGNodeRef) void {
+    c.YGNodeStyleSetMaxHeightStretch(node);
 }
 
 /// Gets max height
@@ -731,7 +841,7 @@ pub export fn ygNodeGetContext(node: YGNodeConstRef) ?*anyopaque {
 
 /// Sets measure function
 pub export fn ygNodeSetMeasureFunc(node: YGNodeRef, measureFunc: ?*const anyopaque) void {
-    c.YGNodeSetMeasureFunc(node, @alignCast(@ptrCast(measureFunc)));
+    c.YGNodeSetMeasureFunc(node, @ptrCast(@alignCast(measureFunc)));
 }
 
 /// Unsets measure function
@@ -746,7 +856,7 @@ pub export fn ygNodeHasMeasureFunc(node: YGNodeConstRef) bool {
 
 /// Sets baseline function
 pub export fn ygNodeSetBaselineFunc(node: YGNodeRef, baselineFunc: ?*const anyopaque) void {
-    c.YGNodeSetBaselineFunc(node, @alignCast(@ptrCast(baselineFunc)));
+    c.YGNodeSetBaselineFunc(node, @ptrCast(@alignCast(baselineFunc)));
 }
 
 /// Unsets baseline function
@@ -761,7 +871,7 @@ pub export fn ygNodeHasBaselineFunc(node: YGNodeConstRef) bool {
 
 /// Sets dirtied callback function
 pub export fn ygNodeSetDirtiedFunc(node: YGNodeRef, dirtiedFunc: ?*const anyopaque) void {
-    c.YGNodeSetDirtiedFunc(node, @alignCast(@ptrCast(dirtiedFunc)));
+    c.YGNodeSetDirtiedFunc(node, @ptrCast(@alignCast(dirtiedFunc)));
 }
 
 /// Unsets dirtied callback function
@@ -807,7 +917,7 @@ pub export fn ygNodeGetAlwaysFormsContainingBlock(node: YGNodeConstRef) bool {
 //=============================================================================
 // CALLBACK HELPER FUNCTIONS - MEASURE/BASELINE FUNCTION WORKAROUND
 //=============================================================================
-// 
+//
 // The ARM64 calling convention returns struct { float, float } in s0 and s1 registers.
 // However, Bun FFI callbacks can only return via x0 (integer) or d0 (single float register).
 // Since d0 != s0+s1 on ARM64, we can't properly return YGSize from a JSCallback.
@@ -828,7 +938,7 @@ const CallbackContext = struct {
 };
 
 /// Use C allocator for FFI compatibility with glibc malloc/free on Linux.
-/// Zig's GeneralPurposeAllocator can cause heap corruption ("malloc(): unaligned 
+/// Zig's GeneralPurposeAllocator can cause heap corruption ("malloc(): unaligned
 /// tcache chunk detected") when mixed with glibc's thread-cached malloc.
 const callback_allocator = std.heap.c_allocator;
 
@@ -1056,6 +1166,44 @@ pub export fn ygFloatIsUndefined(value: f32) bool {
 /// Returns the Undefined value
 pub export fn ygUndefined() f32 {
     return c.YGUndefined;
+}
+
+/// Rounds value to pixel grid
+pub export fn ygRoundValueToPixelGrid(value: f64, pointScaleFactor: f64, forceCeil: bool, forceFloor: bool) f32 {
+    return c.YGRoundValueToPixelGrid(value, pointScaleFactor, forceCeil, forceFloor);
+}
+
+/// Checks if node can use cached measurement
+pub export fn ygNodeCanUseCachedMeasurement(
+    widthMode: YGMeasureMode,
+    width: f32,
+    heightMode: YGMeasureMode,
+    height: f32,
+    lastWidthMode: YGMeasureMode,
+    lastWidth: f32,
+    lastHeightMode: YGMeasureMode,
+    lastHeight: f32,
+    lastComputedWidth: f32,
+    lastComputedHeight: f32,
+    marginRow: f32,
+    marginColumn: f32,
+    config: YGConfigRef,
+) bool {
+    return c.YGNodeCanUseCachedMeasurement(
+        widthMode,
+        width,
+        heightMode,
+        height,
+        lastWidthMode,
+        lastWidth,
+        lastHeightMode,
+        lastHeight,
+        lastComputedWidth,
+        lastComputedHeight,
+        marginRow,
+        marginColumn,
+        config,
+    );
 }
 
 //=============================================================================

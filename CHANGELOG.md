@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.14
+
+- **Full Native API Completeness**: `bun-yoga` now exports **100%** of the Yoga C API functions.
+- Added missing native exports:
+  - **Styles**: `FitContent`, `MaxContent`, and `Stretch` variants for all dimension properties (Width, Height, Min/Max Width/Height).
+  - **Config**: `ygConfigSetLogger`, `ygConfigSetContext`, `ygConfigGetContext`, `ygConfigSetCloneNodeFunc`.
+  - **Utils**: `ygRoundValueToPixelGrid`, `ygNodeCanUseCachedMeasurement`.
+- Added `scripts/check-native-completeness.ts` which fetches the exact upstream `Yoga.h` headers and verifies that every single C function is exported by our
+  FFI wrapper.
+
+## 0.2.13
+
+- Added missing top-level constants for full `yoga-layout` compatibility (`BOX_SIZING_*`, `DIMENSION_*`, `DISPLAY_CONTENTS`, `ERRATA_*`, `EXPERIMENTAL_FEATURE_*`, `GUTTER_*`, `LOG_LEVEL_*`, `MEASURE_MODE_*`, `NODE_TYPE_*`, `UNIT_*`).
+- Added `scripts/check-completeness.ts` to verify API compatibility with official `yoga-layout` package.
+
 ## 0.2.12
 
 - Fixed bun compile native library embedding using dynamic import() with { type: "file" }
@@ -7,6 +22,7 @@
 ## 0.2.11
 
 ### Changes
+
 - Methods on freed nodes now return default values instead of throwing errors (matches yoga-layout behavior)
 - This makes bun-yoga a proper drop-in replacement for yoga-layout
 - Getters return sensible defaults: `0` for computed values, `{ unit: Undefined, value: NaN }` for Value types
@@ -16,10 +32,12 @@
 ## 0.2.8
 
 ### Breaking Changes
+
 - Converted output from ES modules to CommonJS
 - Removed `type: "module"` from package.json
 
 ### Changes
+
 - Updated tsconfig to compile to CommonJS module output
 - Changed platform detection to use `process.platform` and `process.arch` directly
 - Replaced `import.meta.dir` with `__dirname` for CommonJS compatibility
@@ -28,20 +46,24 @@
 ## 0.2.7
 
 ### Fixes
+
 - Added use-after-free protection to prevent crashes when accessing freed nodes
 - Calling methods on a freed node now throws a clear error instead of causing memory corruption
 - Double-free is now safe (no-op) - calling `free()` or `freeRecursive()` multiple times is harmless
 
 ### New Features
+
 - Added `Node.isFreed()` method to check if a node has been freed
 
 ### Tests
+
 - Added comprehensive tests for use-after-free protection
 - Added tests for double-free safety
 
 ## 0.2.5
 
 ### Fixes
+
 - Fixed memory corruption on Linux ("malloc(): unaligned tcache chunk detected") when rapidly freeing and creating nodes with measure functions
 - Fixed callback context not being freed before node free, causing use-after-free when Yoga reuses memory
 - Changed callback context allocator from Zig's GeneralPurposeAllocator to C allocator for glibc compatibility
@@ -50,6 +72,7 @@
 - Fixed `freeRecursive()` and `reset()` not cleaning up JSCallback objects, causing memory leaks
 
 ### Tests
+
 - Added memory management tests for callback cleanup in `freeRecursive()` and `reset()`
 - Added stress tests for rapid free/create cycles with measure functions
 - Added tests for interleaved node lifecycle with callbacks
@@ -70,15 +93,18 @@
 ## 0.2.1
 
 ### Breaking Changes
+
 - `DirtiedFunction` signature changed to match yoga-layout: `(node: Node) => void` instead of `() => void`
 
 ### New Features
+
 - **Value getter methods**: Added all Value getters that return `{unit, value}` like yoga-layout:
   - `getWidth()`, `getHeight()`, `getMinWidth()`, `getMinHeight()`, `getMaxWidth()`, `getMaxHeight()`
   - `getMargin(edge)`, `getPadding(edge)`, `getPosition(edge)`, `getGap(gutter)`
   - `getFlexBasis()`
 
 ### Fixes
+
 - **Enum getter return types**: All enum getters now return proper enum types instead of `number`:
   - `getDirection()` returns `Direction` (was `number`)
   - `getFlexDirection()` returns `FlexDirection` (was `number`)
@@ -91,6 +117,7 @@
 - **Setter parameter types**: All enum setters now accept proper enum types instead of `number`
 
 ### Internal
+
 - Added Zig packed value helper functions for FFI struct returns
 - Added comprehensive tests for Value getters and DirtiedFunction
 - Source files now included in npm package with `bun` export condition
@@ -98,9 +125,11 @@
 ## 0.2.0
 
 ### Breaking Changes
+
 - Method signatures updated to match yoga-layout exactly (accepts `undefined`)
 
 ### New Features
+
 - **Type exports**: All enums now export corresponding TypeScript types (e.g., `Align` works as both value and type)
 - **String value support**: Methods now accept percent strings (`"50%"`) and `"auto"` like yoga-layout:
   - `setWidth`, `setHeight`: accept `number | "auto" | \`${number}%\` | undefined`
@@ -112,6 +141,7 @@
   - `setFlexBasis`: accepts `number | "auto" | \`${number}%\` | undefined`
 
 ### New Methods
+
 - `Node.copyStyle(node)`: Copy style from another node
 - `Node.setBoxSizing(boxSizing)` / `Node.getBoxSizing()`: Box sizing support
 - `Node.setIsReferenceBaseline(isReferenceBaseline)` / `Node.isReferenceBaseline()`: Reference baseline support
@@ -120,6 +150,7 @@
 - `Config.setExperimentalFeatureEnabled(feature, enabled)` / `Config.isExperimentalFeatureEnabled(feature)`: Experimental features
 
 ### Internal
+
 - Added `Value` type for yoga-layout compatibility
 - Added comprehensive tests for string value parsing
 

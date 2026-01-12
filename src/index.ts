@@ -213,6 +213,10 @@ export const EDGE_HORIZONTAL = Edge.Horizontal;
 export const EDGE_VERTICAL = Edge.Vertical;
 export const EDGE_ALL = Edge.All;
 
+export const GUTTER_COLUMN = Gutter.Column;
+export const GUTTER_ROW = Gutter.Row;
+export const GUTTER_ALL = Gutter.All;
+
 export const FLEX_DIRECTION_COLUMN = FlexDirection.Column;
 export const FLEX_DIRECTION_COLUMN_REVERSE = FlexDirection.ColumnReverse;
 export const FLEX_DIRECTION_ROW = FlexDirection.Row;
@@ -245,6 +249,13 @@ export const OVERFLOW_SCROLL = Overflow.Scroll;
 
 export const DISPLAY_FLEX = Display.Flex;
 export const DISPLAY_NONE = Display.None;
+export const DISPLAY_CONTENTS = Display.Contents;
+
+export const BOX_SIZING_BORDER_BOX = BoxSizing.BorderBox;
+export const BOX_SIZING_CONTENT_BOX = BoxSizing.ContentBox;
+
+export const DIMENSION_WIDTH = Dimension.Width;
+export const DIMENSION_HEIGHT = Dimension.Height;
 
 export const POSITION_TYPE_STATIC = PositionType.Static;
 export const POSITION_TYPE_RELATIVE = PositionType.Relative;
@@ -253,6 +264,34 @@ export const POSITION_TYPE_ABSOLUTE = PositionType.Absolute;
 export const DIRECTION_INHERIT = Direction.Inherit;
 export const DIRECTION_LTR = Direction.LTR;
 export const DIRECTION_RTL = Direction.RTL;
+
+export const UNIT_UNDEFINED = Unit.Undefined;
+export const UNIT_POINT = Unit.Point;
+export const UNIT_PERCENT = Unit.Percent;
+export const UNIT_AUTO = Unit.Auto;
+
+export const MEASURE_MODE_UNDEFINED = MeasureMode.Undefined;
+export const MEASURE_MODE_EXACTLY = MeasureMode.Exactly;
+export const MEASURE_MODE_AT_MOST = MeasureMode.AtMost;
+
+export const NODE_TYPE_DEFAULT = NodeType.Default;
+export const NODE_TYPE_TEXT = NodeType.Text;
+
+export const LOG_LEVEL_ERROR = LogLevel.Error;
+export const LOG_LEVEL_WARN = LogLevel.Warn;
+export const LOG_LEVEL_INFO = LogLevel.Info;
+export const LOG_LEVEL_DEBUG = LogLevel.Debug;
+export const LOG_LEVEL_VERBOSE = LogLevel.Verbose;
+export const LOG_LEVEL_FATAL = LogLevel.Fatal;
+
+export const EXPERIMENTAL_FEATURE_WEB_FLEX_BASIS = ExperimentalFeature.WebFlexBasis;
+
+export const ERRATA_NONE = Errata.None;
+export const ERRATA_STRETCH_FLEX_BASIS = Errata.StretchFlexBasis;
+export const ERRATA_ABSOLUTE_POSITION_WITHOUT_INSETS_EXCLUDES_PADDING = Errata.AbsolutePositionWithoutInsetsExcludesPadding;
+export const ERRATA_ABSOLUTE_PERCENT_AGAINST_INNER_SIZE = Errata.AbsolutePercentAgainstInnerSize;
+export const ERRATA_ALL = Errata.All;
+export const ERRATA_CLASSIC = Errata.Classic;
 
 // ============================================================================
 // Value type for yoga-layout compatibility
@@ -1423,10 +1462,40 @@ export default {
   OVERFLOW_SCROLL,
   DISPLAY_FLEX,
   DISPLAY_NONE,
+  DISPLAY_CONTENTS,
   POSITION_TYPE_STATIC,
   POSITION_TYPE_RELATIVE,
   POSITION_TYPE_ABSOLUTE,
   DIRECTION_INHERIT,
   DIRECTION_LTR,
   DIRECTION_RTL,
+  BOX_SIZING_BORDER_BOX,
+  BOX_SIZING_CONTENT_BOX,
+  DIMENSION_WIDTH,
+  DIMENSION_HEIGHT,
+  GUTTER_COLUMN,
+  GUTTER_ROW,
+  GUTTER_ALL,
+  UNIT_UNDEFINED,
+  UNIT_POINT,
+  UNIT_PERCENT,
+  UNIT_AUTO,
+  MEASURE_MODE_UNDEFINED,
+  MEASURE_MODE_EXACTLY,
+  MEASURE_MODE_AT_MOST,
+  NODE_TYPE_DEFAULT,
+  NODE_TYPE_TEXT,
+  LOG_LEVEL_ERROR,
+  LOG_LEVEL_WARN,
+  LOG_LEVEL_INFO,
+  LOG_LEVEL_DEBUG,
+  LOG_LEVEL_VERBOSE,
+  LOG_LEVEL_FATAL,
+  EXPERIMENTAL_FEATURE_WEB_FLEX_BASIS,
+  ERRATA_NONE,
+  ERRATA_STRETCH_FLEX_BASIS,
+  ERRATA_ABSOLUTE_POSITION_WITHOUT_INSETS_EXCLUDES_PADDING,
+  ERRATA_ABSOLUTE_PERCENT_AGAINST_INNER_SIZE,
+  ERRATA_ALL,
+  ERRATA_CLASSIC,
 };
