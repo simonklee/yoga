@@ -138,9 +138,15 @@ pub export fn ygNodeNewWithConfig(config: YGConfigConstRef) YGNodeRef {
     return c.YGNodeNewWithConfig(config);
 }
 
-/// Clones an existing Yoga node
+/// Clones an existing Yoga node (cloned node has no callbacks)
 pub export fn ygNodeClone(node: YGNodeConstRef) YGNodeRef {
-    return c.YGNodeClone(node);
+    const cloned = c.YGNodeClone(node);
+    // Clear context on cloned node to prevent shared CallbackContext.
+    // The original node keeps its callbacks; the clone starts fresh.
+    if (cloned) |cl| {
+        c.YGNodeSetContext(cl, null);
+    }
+    return cloned;
 }
 
 /// Frees a Yoga node (also cleans up any callback context)
@@ -1247,4 +1253,45 @@ test "basic yoga test" {
     // With flex grow 1 each and 10px margin, children should split 90px (100-10)
     try std.testing.expectApproxEqAbs(@as(f32, 45), child0Width, 0.1);
     try std.testing.expectApproxEqAbs(@as(f32, 45), child1Width, 0.1);
+}
+
+test "cloned node does not share callback context" {
+    // Setup: create node with callback context
+    const original = c.YGNodeNew();
+    defer c.YGNodeFree(original);
+
+    // Set up a trampoline callback (creates CallbackContext)
+    ygNodeSetMeasureFuncTrampoline(original, null);
+    const ctx = getOrCreateContext(original);
+    ctx.measure_callback = @ptrFromInt(0xDEADBEEF); // Fake callback pointer
+
+    // Clone the node
+    const cloned = ygNodeClone(original);
+    defer ygNodeFree(cloned); // Should not crash
+
+    // Verify: cloned node has no context (null)
+    const cloned_ctx = c.YGNodeGetContext(cloned);
+    try std.testing.expectEqual(@as(?*anyopaque, null), cloned_ctx);
+
+    // Verify: original still has its context
+    const original_ctx = c.YGNodeGetContext(original);
+    try std.testing.expect(original_ctx != null);
+}
+
+test "freeing cloned node does not affect original callbacks" {
+    const original = c.YGNodeNew();
+    defer ygNodeFree(original);
+
+    // Set up callback on original
+    const ctx = getOrCreateContext(original);
+    ctx.measure_callback = @ptrFromInt(0xCAFEBABE);
+
+    // Clone and immediately free
+    const cloned = ygNodeClone(original);
+    ygNodeFree(cloned);
+
+    // Original's context should still be valid and unchanged
+    const original_ctx = getContext(original);
+    try std.testing.expect(original_ctx != null);
+    try std.testing.expectEqual(@as(usize, 0xCAFEBABE), @intFromPtr(original_ctx.?.measure_callback));
 }

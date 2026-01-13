@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.22
+
+- Fixed pointer alignment errors on aarch64-linux-gnu cross-compilation.
+- Fixed use-after-free bug when cloning nodes with trampoline callbacks.
+
 ## 0.2.21
 
 - Switched to npm trusted publishing (OIDC) with provenance attestations.
