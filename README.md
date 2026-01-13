@@ -63,8 +63,11 @@ zig build
 # Build the native library (release)
 zig build -Doptimize=ReleaseFast
 
-# Build native library and prepare dist placeholders (for bun --compile)
+# Build native library and prepare dist placeholders (ReleaseFast, for bun --compile)
 bun run build:native
+
+# Build native library and placeholders (debug)
+bun run build:native:dev
 
 # Build TypeScript to dist/
 bun run build

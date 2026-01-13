@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.2.28
+
+- Made `build:native` use ReleaseFast, added `build:native:dev`, and introduced `build:zig:linux-arm64`.
+- Added `clean:native` script to remove `dist/` and `zig-out/`.
+
 ## 0.2.27
 
-- Added CI step to generate dist placeholders for all platforms before Bun tests.
+- Generate dist placeholders via build scripts before Bun tests in CI.
 
 ## 0.2.26
 

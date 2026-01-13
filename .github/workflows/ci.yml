@@ -42,8 +42,16 @@ jobs:
         with:
           version: 0.15.2
 
-      - name: Build
-        run: zig build -Doptimize=ReleaseFast
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build native library and placeholders
+        run: bun run build:native
 
       - name: Run Zig tests
         run: zig build test
@@ -56,17 +64,6 @@ jobs:
             Copy-Item "zig-out/bin/${{ matrix.lib }}" "zig-out/lib/${{ matrix.lib }}"
           }
         shell: pwsh
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Prepare native placeholders
-        run: bun run scripts/copy-native-to-dist.ts
 
       - name: Run Bun tests
         run: bun test
@@ -91,8 +88,13 @@ jobs:
         with:
           version: 0.15.2
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Build for Linux ARM64
-        run: zig build -Doptimize=ReleaseFast -Dtarget=aarch64-linux-gnu
+        run: bun run build:zig:linux-arm64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -118,7 +120,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
