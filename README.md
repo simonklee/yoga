@@ -49,11 +49,12 @@ config.free();
 
 ## API
 
-The API mirrors [yoga-layout](https://www.npmjs.com/package/yoga-layout). All enums, constants, and methods are compatible.
+The API mirrors [yoga-layout](https://www.npmjs.com/package/yoga-layout). All
+enums, constants, and methods are compatible.
 
 ## Building from source
 
-Requirements: Bun and Zig 0.15.1+.
+Requirements: Bun and Zig 0.15.2+.
 
 ```bash
 # Build the native library (debug)

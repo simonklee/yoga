@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.27
+
+- Added CI step to generate dist placeholders for all platforms before Bun tests.
+
 ## 0.2.26
 
 - Added TypeScript module declarations for Bun `{ type: "file" }` native library imports (`.dylib`, `.so`, `.dll`).
