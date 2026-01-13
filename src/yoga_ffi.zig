@@ -141,9 +141,12 @@ pub export fn ygNodeNewWithConfig(config: YGConfigConstRef) YGNodeRef {
 /// Clones an existing Yoga node (cloned node has no callbacks)
 pub export fn ygNodeClone(node: YGNodeConstRef) YGNodeRef {
     const cloned = c.YGNodeClone(node);
-    // Clear context on cloned node to prevent shared CallbackContext.
-    // The original node keeps its callbacks; the clone starts fresh.
+    // Clear callbacks/context on cloned node to prevent shared CallbackContext
+    // and dangling callback pointers.
     if (cloned) |cl| {
+        c.YGNodeSetMeasureFunc(cl, null);
+        c.YGNodeSetBaselineFunc(cl, null);
+        c.YGNodeSetDirtiedFunc(cl, null);
         c.YGNodeSetContext(cl, null);
     }
     return cloned;
@@ -1255,6 +1258,10 @@ test "basic yoga test" {
     try std.testing.expectApproxEqAbs(@as(f32, 45), child1Width, 0.1);
 }
 
+fn dummyDirtiedFunc(node: YGNodeConstRef) callconv(.c) void {
+    _ = node;
+}
+
 test "cloned node does not share callback context" {
     // Setup: create node with callback context
     const original = c.YGNodeNew();
@@ -1276,6 +1283,26 @@ test "cloned node does not share callback context" {
     // Verify: original still has its context
     const original_ctx = c.YGNodeGetContext(original);
     try std.testing.expect(original_ctx != null);
+}
+
+test "cloned node clears callbacks" {
+    const original = c.YGNodeNew();
+    defer ygNodeFree(original);
+
+    c.YGNodeSetMeasureFunc(original, &internalMeasureFunc);
+    c.YGNodeSetBaselineFunc(original, &internalBaselineFunc);
+    c.YGNodeSetDirtiedFunc(original, &dummyDirtiedFunc);
+
+    try std.testing.expect(c.YGNodeHasMeasureFunc(original));
+    try std.testing.expect(c.YGNodeHasBaselineFunc(original));
+    try std.testing.expect(c.YGNodeGetDirtiedFunc(original) != null);
+
+    const cloned = ygNodeClone(original);
+    defer ygNodeFree(cloned);
+
+    try std.testing.expect(!c.YGNodeHasMeasureFunc(cloned));
+    try std.testing.expect(!c.YGNodeHasBaselineFunc(cloned));
+    try std.testing.expect(c.YGNodeGetDirtiedFunc(cloned) == null);
 }
 
 test "freeing cloned node does not affect original callbacks" {

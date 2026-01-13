@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.23
+
+- Cleared callbacks on cloned nodes to avoid dangling callback pointers.
+
 ## 0.2.22
 
 - Fixed pointer alignment errors on aarch64-linux-gnu cross-compilation.
