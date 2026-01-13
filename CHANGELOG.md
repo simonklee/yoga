@@ -3,6 +3,7 @@
 ## 0.2.29
 
 - Benchmarks now support a layout-only mode and reuse child references for fairer comparisons.
+- Default native builds to a baseline CPU model to avoid emitting AVX-512-only binaries.
 
 ## 0.2.28
 

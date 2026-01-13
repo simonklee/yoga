@@ -30,7 +30,10 @@ const yoga_files = .{
 };
 
 pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
+    const target = b.standardTargetOptions(.{
+        // Default to baseline CPU so released binaries run on older CPUs; override with -Dcpu if needed.
+        .default_target = .{ .cpu_model = .baseline },
+    });
     const optimize = b.standardOptimizeOption(.{});
 
     // Get yoga dependency from Facebook
