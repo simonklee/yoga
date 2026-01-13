@@ -1,3 +1,4 @@
+/// <reference path="./native-libs.d.ts" />
 import { dlopen, suffix, JSCallback, FFIType, type Pointer } from "bun:ffi";
 import { join } from "path";
 import { existsSync } from "fs";

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.26
+
+- Added TypeScript module declarations for Bun `{ type: "file" }` native library imports (`.dylib`, `.so`, `.dll`).
+
 ## 0.2.25
 
 - Removed top-level await from the native library loader for bytecode-friendly startup.

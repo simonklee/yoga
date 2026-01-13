@@ -20,6 +20,6 @@
     "declarationMap": true,
     "types": ["node", "bun-types"]
   },
-  "include": ["src/index.ts"],
+  "include": ["src/index.ts", "src/native-libs.d.ts"],
   "exclude": ["**/*.test.ts", "bench.ts"]
 }
