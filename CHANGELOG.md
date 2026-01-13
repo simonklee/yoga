@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.21
+
+- Switched to npm trusted publishing (OIDC) with provenance attestations.
+
 ## 0.2.20
 
 - Updated README title and tagline.

@@ -1,6 +1,6 @@
 {
   "name": "@simonklee/yoda",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "description": "A fast FFI wrapper for Facebook's Yoga layout engine for Bun, providing a yoga-layout compatible API",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
