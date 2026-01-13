@@ -1,4 +1,4 @@
-# Yoda bindings
+# Yoga bindings
 
 Fast Bun FFI bindings for Facebook's [Yoga](https://yogalayout.dev/) layout
 engine, providing a `yoga-layout` compatible API built on Zig.
@@ -20,13 +20,13 @@ The correct binary is automatically loaded at runtime based on your platform.
 ## Installation
 
 ```bash
-bun add @simonklee/yoda
+bun add @simonklee/yoga
 ```
 
 ## Usage
 
 ```typescript
-import Yoga, { Node, Config, Edge, FlexDirection } from "@simonklee/yoda";
+import Yoga, { Node, Config, Edge, FlexDirection } from "@simonklee/yoga";
 
 const config = Config.create();
 const root = Node.create(config);

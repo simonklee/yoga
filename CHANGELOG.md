@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.24
+
+- Renamed package from `@simonklee/yoda` to `@simonklee/yoga`.
+
 ## 0.2.23
 
 - Cleared callbacks on cloned nodes to avoid dangling callback pointers.

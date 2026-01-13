@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Test script to verify @simonklee/yoda works correctly when compiled with `bun build --compile`
+ * Test script to verify @simonklee/yoga works correctly when compiled with `bun build --compile`
  * 
  * This reproduces the issue where dlopen fails with $bunfs paths in compiled executables.
  * 
@@ -13,8 +13,8 @@ import { join } from "node:path"
 import { tmpdir } from "node:os"
 
 const rootDir = join(import.meta.dir, "..")
-const packageName = "@simonklee/yoda"
-const packageDirName = "simonklee-yoda"
+const packageName = "@simonklee/yoga"
+const packageDirName = "simonklee-yoga"
 const testDir = join(tmpdir(), "yoda-compile-test")
 const pkgCopy = join(testDir, packageDirName)
 const appDir = join(testDir, "app")
@@ -44,7 +44,7 @@ writeFileSync(join(appDir, "package.json"), JSON.stringify({
 
 // Create test script
 writeFileSync(join(appDir, "test.ts"), `
-import { Node } from "@simonklee/yoda/src";
+import { Node } from "@simonklee/yoga/src";
 
 const node = Node.create();
 node.setWidth(100);

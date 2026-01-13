@@ -1,6 +1,6 @@
 ## Project Overview
 
-`@simonklee/yoda` is a Bun FFI wrapper around Facebook's Yoga layout engine. Zig builds a
+`@simonklee/yoga` is a Bun FFI wrapper around Facebook's Yoga layout engine. Zig builds a
 dynamic library from Yoga's C/C++ sources, and `src/index.ts` loads it via
 `bun:ffi` to expose a `yoga-layout` compatible API (`Node`, `Config`, enums).
 
