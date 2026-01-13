@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.29
+
+- Benchmarks now support a layout-only mode and reuse child references for fairer comparisons.
+
 ## 0.2.28
 
 - Made `build:native` use ReleaseFast, added `build:native:dev`, and introduced `build:zig:linux-arm64`.

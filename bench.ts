@@ -4,7 +4,7 @@
  * Compares our FFI implementation with yoga-layout (WASM)
  */
 
-import Yoga, { Node, Config, Edge, FlexDirection, Justify, Align, Direction } from "./src/index";
+import { Node, Edge, FlexDirection, Justify, Align } from "./src/index";
 import OfficialYoga from "yoga-layout";
 
 interface BenchResult {
@@ -14,6 +14,29 @@ interface BenchResult {
   avg: number;
   min: number;
   max: number;
+}
+
+type BenchMode = "full" | "layout";
+
+function getBenchMode(): BenchMode {
+  const args = process.argv.slice(2);
+  const modeArg = args.find((arg) => arg.startsWith("--mode="));
+  if (modeArg) {
+    const value = modeArg.split("=")[1];
+    if (value === "layout" || value === "layout-only") {
+      return "layout";
+    }
+    if (value === "full") {
+      return "full";
+    }
+  }
+  if (args.includes("--layout-only")) {
+    return "layout";
+  }
+  if (args.includes("--full")) {
+    return "full";
+  }
+  return "full";
 }
 
 function runBenchmark(
@@ -61,31 +84,70 @@ function printComparison(local: BenchResult, official: BenchResult) {
   console.log(`  --> ${faster} is ${ratio.toFixed(2)}x faster`);
 }
 
+interface CaseResult {
+  name: string;
+  local: BenchResult;
+  official: BenchResult;
+}
+
+function runCase(
+  name: string,
+  iterations: number,
+  local: () => void,
+  official: () => void
+): CaseResult {
+  console.log(`\n--- ${name} ---`);
+  const localResult = runBenchmark("Local FFI", local, iterations);
+  const officialResult = runBenchmark("yoga-layout", official, iterations);
+  printResult(localResult);
+  printResult(officialResult);
+  printComparison(localResult, officialResult);
+  return { name, local: localResult, official: officialResult };
+}
+
+function printSummary(results: CaseResult[]) {
+  console.log("\n" + "=".repeat(70));
+  console.log("SUMMARY");
+  console.log("=".repeat(70));
+
+  const nameWidth = results.reduce((max, result) => Math.max(max, result.name.length), 0);
+  let totalSpeedup = 0;
+  for (const { name, local, official } of results) {
+    const speedup = official.avg / local.avg;
+    const faster = speedup > 1 ? "FFI" : "WASM";
+    const ratio = speedup > 1 ? speedup : 1 / speedup;
+    console.log(`  ${name.padEnd(nameWidth)} ${faster} ${ratio.toFixed(2)}x faster`);
+    totalSpeedup += speedup;
+  }
+
+  const avgSpeedup = totalSpeedup / results.length;
+  const overallFaster = avgSpeedup > 1 ? "Local FFI" : "yoga-layout";
+  const overallRatio = avgSpeedup > 1 ? avgSpeedup : 1 / avgSpeedup;
+  console.log(`\nOverall: ${overallFaster} is ${overallRatio.toFixed(2)}x faster on average`);
+  console.log("\n" + "=".repeat(70));
+}
+
 // ============================================================================
 // Local FFI Benchmarks
 // ============================================================================
 
 function simpleLayout_Local() {
-  const config = Config.create();
-  const root = Node.create(config);
+  const root = Node.create();
 
   root.setWidth(100);
   root.setHeight(200);
   root.setPadding(Edge.All, 10);
   root.setMargin(Edge.All, 5);
 
-  root.calculateLayout(undefined, undefined, Direction.LTR);
+  root.calculateLayout(undefined, undefined);
   root.getComputedLayout();
 
   root.free();
-  config.free();
 }
 
 function nestedLayout_Local(depth: number, childrenPerLevel: number) {
-  const config = Config.create();
-
   const createLevel = (level: number): Node => {
-    const node = Node.create(config);
+    const node = Node.create();
     node.setFlexDirection(level % 2 === 0 ? FlexDirection.Column : FlexDirection.Row);
     node.setFlexGrow(1);
     node.setPadding(Edge.All, 5);
@@ -107,14 +169,12 @@ function nestedLayout_Local(depth: number, childrenPerLevel: number) {
   root.setWidth(1000);
   root.setHeight(1000);
 
-  root.calculateLayout(1000, 1000, Direction.LTR);
+  root.calculateLayout(1000, 1000);
   root.freeRecursive();
-  config.free();
 }
 
 function columnWithBoxes_Local(numBoxes: number) {
-  const config = Config.create();
-  const root = Node.create(config);
+  const root = Node.create();
 
   root.setFlexDirection(FlexDirection.Column);
   root.setWidth(1000);
@@ -123,29 +183,27 @@ function columnWithBoxes_Local(numBoxes: number) {
   root.setAlignItems(Align.Stretch);
   root.setPadding(Edge.All, 10);
 
+  const children: Node[] = [];
   for (let i = 0; i < numBoxes; i++) {
-    const child = Node.create(config);
+    const child = Node.create();
     child.setHeight(50);
     child.setMargin(Edge.All, 5);
     child.setPadding(Edge.All, 10);
     root.insertChild(child, i);
+    children.push(child);
   }
 
-  root.calculateLayout(1000, 1000, Direction.LTR);
+  root.calculateLayout(1000, 1000);
 
   // Read computed values
-  for (let i = 0; i < numBoxes; i++) {
-    const child = root.getChild(i);
-    if (child) {
-      child.getComputedLeft();
-      child.getComputedTop();
-      child.getComputedWidth();
-      child.getComputedHeight();
-    }
+  for (const child of children) {
+    child.getComputedLeft();
+    child.getComputedTop();
+    child.getComputedWidth();
+    child.getComputedHeight();
   }
 
   root.freeRecursive();
-  config.free();
 }
 
 // ============================================================================
@@ -208,19 +266,20 @@ function columnWithBoxes_Official(numBoxes: number) {
   root.setAlignItems(OfficialYoga.ALIGN_STRETCH);
   root.setPadding(OfficialYoga.EDGE_ALL, 10);
 
+  const children: any[] = [];
   for (let i = 0; i < numBoxes; i++) {
     const child = OfficialYoga.Node.create();
     child.setHeight(50);
     child.setMargin(OfficialYoga.EDGE_ALL, 5);
     child.setPadding(OfficialYoga.EDGE_ALL, 10);
     root.insertChild(child, i);
+    children.push(child);
   }
 
   root.calculateLayout(1000, 1000);
 
   // Read computed values
-  for (let i = 0; i < numBoxes; i++) {
-    const child = root.getChild(i);
+  for (const child of children) {
     child.getComputedLeft();
     child.getComputedTop();
     child.getComputedWidth();
@@ -231,76 +290,301 @@ function columnWithBoxes_Official(numBoxes: number) {
 }
 
 // ============================================================================
+// Layout-only Benchmarks (build once, measure layout)
+// ============================================================================
+
+interface LayoutBench {
+  run: () => void;
+  cleanup: () => void;
+}
+
+function simpleLayout_Local_LayoutOnly(): LayoutBench {
+  const root = Node.create();
+
+  root.setWidth(100);
+  root.setHeight(200);
+  root.setPadding(Edge.All, 10);
+  root.setMargin(Edge.All, 5);
+
+  let toggle = false;
+  return {
+    run: () => {
+      toggle = !toggle;
+      root.setWidth(toggle ? 100 : 101);
+      root.calculateLayout(undefined, undefined);
+      root.getComputedLayout();
+    },
+    cleanup: () => root.free(),
+  };
+}
+
+function simpleLayout_Official_LayoutOnly(): LayoutBench {
+  const root = OfficialYoga.Node.create();
+
+  root.setWidth(100);
+  root.setHeight(200);
+  root.setPadding(OfficialYoga.EDGE_ALL, 10);
+  root.setMargin(OfficialYoga.EDGE_ALL, 5);
+
+  let toggle = false;
+  return {
+    run: () => {
+      toggle = !toggle;
+      root.setWidth(toggle ? 100 : 101);
+      root.calculateLayout(undefined, undefined);
+      root.getComputedLayout();
+    },
+    cleanup: () => root.free(),
+  };
+}
+
+function columnWithBoxes_Local_LayoutOnly(numBoxes: number): LayoutBench {
+  const root = Node.create();
+
+  root.setFlexDirection(FlexDirection.Column);
+  root.setWidth(1000);
+  root.setHeight(1000);
+  root.setJustifyContent(Justify.FlexStart);
+  root.setAlignItems(Align.Stretch);
+  root.setPadding(Edge.All, 10);
+
+  const children: Node[] = [];
+  for (let i = 0; i < numBoxes; i++) {
+    const child = Node.create();
+    child.setHeight(50);
+    child.setMargin(Edge.All, 5);
+    child.setPadding(Edge.All, 10);
+    root.insertChild(child, i);
+    children.push(child);
+  }
+
+  const target = children[0];
+  if (!target) throw new Error("No child nodes created");
+
+  let toggle = false;
+  return {
+    run: () => {
+      toggle = !toggle;
+      target.setHeight(toggle ? 50 : 51);
+      root.calculateLayout(1000, 1000);
+      target.getComputedHeight();
+    },
+    cleanup: () => root.freeRecursive(),
+  };
+}
+
+function columnWithBoxes_Official_LayoutOnly(numBoxes: number): LayoutBench {
+  const root = OfficialYoga.Node.create();
+
+  root.setFlexDirection(OfficialYoga.FLEX_DIRECTION_COLUMN);
+  root.setWidth(1000);
+  root.setHeight(1000);
+  root.setJustifyContent(OfficialYoga.JUSTIFY_FLEX_START);
+  root.setAlignItems(OfficialYoga.ALIGN_STRETCH);
+  root.setPadding(OfficialYoga.EDGE_ALL, 10);
+
+  const children: any[] = [];
+  for (let i = 0; i < numBoxes; i++) {
+    const child = OfficialYoga.Node.create();
+    child.setHeight(50);
+    child.setMargin(OfficialYoga.EDGE_ALL, 5);
+    child.setPadding(OfficialYoga.EDGE_ALL, 10);
+    root.insertChild(child, i);
+    children.push(child);
+  }
+
+  const target = children[0];
+  if (!target) throw new Error("No child nodes created");
+
+  let toggle = false;
+  return {
+    run: () => {
+      toggle = !toggle;
+      target.setHeight(toggle ? 50 : 51);
+      root.calculateLayout(1000, 1000);
+      target.getComputedHeight();
+    },
+    cleanup: () => root.freeRecursive(),
+  };
+}
+
+function nestedLayout_Local_LayoutOnly(depth: number, childrenPerLevel: number): LayoutBench {
+  let leaf: Node | null = null;
+
+  const createLevel = (level: number): Node => {
+    const node = Node.create();
+    node.setFlexDirection(level % 2 === 0 ? FlexDirection.Column : FlexDirection.Row);
+    node.setFlexGrow(1);
+    node.setPadding(Edge.All, 5);
+
+    if (level < depth) {
+      for (let i = 0; i < childrenPerLevel; i++) {
+        const child = createLevel(level + 1);
+        node.insertChild(child, i);
+      }
+    } else {
+      node.setWidth(50);
+      node.setHeight(50);
+      if (!leaf) {
+        leaf = node;
+      }
+    }
+
+    return node;
+  };
+
+  const root = createLevel(0);
+  if (!leaf) throw new Error("No leaf node created");
+  const target = leaf;
+  root.setWidth(1000);
+  root.setHeight(1000);
+
+  let toggle = false;
+  return {
+    run: () => {
+      toggle = !toggle;
+      target.setWidth(toggle ? 50 : 51);
+      root.calculateLayout(1000, 1000);
+      target.getComputedWidth();
+    },
+    cleanup: () => root.freeRecursive(),
+  };
+}
+
+function nestedLayout_Official_LayoutOnly(depth: number, childrenPerLevel: number): LayoutBench {
+  let leaf: any = null;
+
+  const createLevel = (level: number): any => {
+    const node = OfficialYoga.Node.create();
+    node.setFlexDirection(
+      level % 2 === 0
+        ? OfficialYoga.FLEX_DIRECTION_COLUMN
+        : OfficialYoga.FLEX_DIRECTION_ROW
+    );
+    node.setFlexGrow(1);
+    node.setPadding(OfficialYoga.EDGE_ALL, 5);
+
+    if (level < depth) {
+      for (let i = 0; i < childrenPerLevel; i++) {
+        const child = createLevel(level + 1);
+        node.insertChild(child, i);
+      }
+    } else {
+      node.setWidth(50);
+      node.setHeight(50);
+      if (!leaf) {
+        leaf = node;
+      }
+    }
+
+    return node;
+  };
+
+  const root = createLevel(0);
+  if (!leaf) throw new Error("No leaf node created");
+  const target = leaf;
+  root.setWidth(1000);
+  root.setHeight(1000);
+
+  let toggle = false;
+  return {
+    run: () => {
+      toggle = !toggle;
+      target.setWidth(toggle ? 50 : 51);
+      root.calculateLayout(1000, 1000);
+      target.getComputedWidth();
+    },
+    cleanup: () => root.freeRecursive(),
+  };
+}
+
+// ============================================================================
 // Main
 // ============================================================================
+
+const mode = getBenchMode();
 
 console.log("=".repeat(70));
 console.log("@simonklee/yoga Benchmark: FFI vs yoga-layout (WASM)");
 console.log("=".repeat(70));
+console.log(`Mode: ${mode === "layout" ? "Layout Only" : "Full (build + layout)"}`);
 
-// Simple layout
-console.log("\n--- Simple Layout ---");
-const simpleLocal = runBenchmark("Local FFI", simpleLayout_Local, 5000);
-const simpleOfficial = runBenchmark("yoga-layout", simpleLayout_Official, 5000);
-printResult(simpleLocal);
-printResult(simpleOfficial);
-printComparison(simpleLocal, simpleOfficial);
+const results: CaseResult[] = [];
 
-// Column with boxes
-console.log("\n--- Column with 100 boxes ---");
-const col100Local = runBenchmark("Local FFI", () => columnWithBoxes_Local(100), 500);
-const col100Official = runBenchmark("yoga-layout", () => columnWithBoxes_Official(100), 500);
-printResult(col100Local);
-printResult(col100Official);
-printComparison(col100Local, col100Official);
+if (mode === "layout") {
+  const simpleLocal = simpleLayout_Local_LayoutOnly();
+  const simpleOfficial = simpleLayout_Official_LayoutOnly();
+  results.push(
+    runCase("Simple Layout", 5000, simpleLocal.run, simpleOfficial.run)
+  );
+  simpleLocal.cleanup();
+  simpleOfficial.cleanup();
 
-console.log("\n--- Column with 500 boxes ---");
-const col500Local = runBenchmark("Local FFI", () => columnWithBoxes_Local(500), 100);
-const col500Official = runBenchmark("yoga-layout", () => columnWithBoxes_Official(500), 100);
-printResult(col500Local);
-printResult(col500Official);
-printComparison(col500Local, col500Official);
+  const col100Local = columnWithBoxes_Local_LayoutOnly(100);
+  const col100Official = columnWithBoxes_Official_LayoutOnly(100);
+  results.push(
+    runCase("Column with 100 boxes", 500, col100Local.run, col100Official.run)
+  );
+  col100Local.cleanup();
+  col100Official.cleanup();
 
-// Nested layouts
-console.log("\n--- Nested 4x3 (81 leaf nodes) ---");
-const nested43Local = runBenchmark("Local FFI", () => nestedLayout_Local(4, 3), 500);
-const nested43Official = runBenchmark("yoga-layout", () => nestedLayout_Official(4, 3), 500);
-printResult(nested43Local);
-printResult(nested43Official);
-printComparison(nested43Local, nested43Official);
+  const col500Local = columnWithBoxes_Local_LayoutOnly(500);
+  const col500Official = columnWithBoxes_Official_LayoutOnly(500);
+  results.push(
+    runCase("Column with 500 boxes", 100, col500Local.run, col500Official.run)
+  );
+  col500Local.cleanup();
+  col500Official.cleanup();
 
-console.log("\n--- Nested 4x4 (256 leaf nodes) ---");
-const nested44Local = runBenchmark("Local FFI", () => nestedLayout_Local(4, 4), 100);
-const nested44Official = runBenchmark("yoga-layout", () => nestedLayout_Official(4, 4), 100);
-printResult(nested44Local);
-printResult(nested44Official);
-printComparison(nested44Local, nested44Official);
+  const nested43Local = nestedLayout_Local_LayoutOnly(4, 3);
+  const nested43Official = nestedLayout_Official_LayoutOnly(4, 3);
+  results.push(
+    runCase("Nested 4x3 (81 leaf nodes)", 500, nested43Local.run, nested43Official.run)
+  );
+  nested43Local.cleanup();
+  nested43Official.cleanup();
 
-// Summary
-console.log("\n" + "=".repeat(70));
-console.log("SUMMARY");
-console.log("=".repeat(70));
-
-const results = [
-  { name: "Simple Layout", local: simpleLocal, official: simpleOfficial },
-  { name: "Column 100", local: col100Local, official: col100Official },
-  { name: "Column 500", local: col500Local, official: col500Official },
-  { name: "Nested 4x3", local: nested43Local, official: nested43Official },
-  { name: "Nested 4x4", local: nested44Local, official: nested44Official },
-];
-
-let totalSpeedup = 0;
-for (const { name, local, official } of results) {
-  const speedup = official.avg / local.avg;
-  const faster = speedup > 1 ? "FFI" : "WASM";
-  const ratio = speedup > 1 ? speedup : 1 / speedup;
-  console.log(`  ${name.padEnd(15)} ${faster} ${ratio.toFixed(2)}x faster`);
-  totalSpeedup += speedup;
+  const nested44Local = nestedLayout_Local_LayoutOnly(4, 4);
+  const nested44Official = nestedLayout_Official_LayoutOnly(4, 4);
+  results.push(
+    runCase("Nested 4x4 (256 leaf nodes)", 100, nested44Local.run, nested44Official.run)
+  );
+  nested44Local.cleanup();
+  nested44Official.cleanup();
+} else {
+  results.push(runCase("Simple Layout", 5000, simpleLayout_Local, simpleLayout_Official));
+  results.push(
+    runCase(
+      "Column with 100 boxes",
+      500,
+      () => columnWithBoxes_Local(100),
+      () => columnWithBoxes_Official(100)
+    )
+  );
+  results.push(
+    runCase(
+      "Column with 500 boxes",
+      100,
+      () => columnWithBoxes_Local(500),
+      () => columnWithBoxes_Official(500)
+    )
+  );
+  results.push(
+    runCase(
+      "Nested 4x3 (81 leaf nodes)",
+      500,
+      () => nestedLayout_Local(4, 3),
+      () => nestedLayout_Official(4, 3)
+    )
+  );
+  results.push(
+    runCase(
+      "Nested 4x4 (256 leaf nodes)",
+      100,
+      () => nestedLayout_Local(4, 4),
+      () => nestedLayout_Official(4, 4)
+    )
+  );
 }
 
-const avgSpeedup = totalSpeedup / results.length;
-const overallFaster = avgSpeedup > 1 ? "Local FFI" : "yoga-layout";
-const overallRatio = avgSpeedup > 1 ? avgSpeedup : 1 / avgSpeedup;
-console.log(`\nOverall: ${overallFaster} is ${overallRatio.toFixed(2)}x faster on average`);
-
-console.log("\n" + "=".repeat(70));
+printSummary(results);
