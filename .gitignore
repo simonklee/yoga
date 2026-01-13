@@ -5,6 +5,6 @@ zig-out/
 
 # Node.js
 node_modules/
-
+/bytecode-test
 dist/
 build/

@@ -2,32 +2,34 @@ import { dlopen, suffix, JSCallback, FFIType, type Pointer } from "bun:ffi";
 import { join } from "path";
 import { existsSync } from "fs";
 
-// Import native libraries with { type: "file" } for bun compile support
-// This tells Bun to embed the file and return a real filesystem path
-// Using top-level await import() to load only the current platform's library
-const embeddedLib: string | undefined = await (async () => {
-  try {
-    if (process.platform === "darwin" && process.arch === "arm64") {
-      // @ts-ignore
-      return (await import("../dist/darwin-arm64/libyoga.dylib", { with: { type: "file" } })).default;
-    } else if (process.platform === "darwin" && process.arch === "x64") {
-      // @ts-ignore
-      return (await import("../dist/darwin-x64/libyoga.dylib", { with: { type: "file" } })).default;
-    } else if (process.platform === "linux" && process.arch === "x64") {
-      // @ts-ignore
-      return (await import("../dist/linux-x64/libyoga.so", { with: { type: "file" } })).default;
-    } else if (process.platform === "linux" && process.arch === "arm64") {
-      // @ts-ignore
-      return (await import("../dist/linux-arm64/libyoga.so", { with: { type: "file" } })).default;
-    } else if (process.platform === "win32") {
-      // @ts-ignore
-      return (await import("../dist/windows-x64/yoga.dll", { with: { type: "file" } })).default;
-    }
-  } catch {
-    // Library not found for this platform
+// Import native libraries with { type: "file" } for bun compile support.
+// This tells Bun to embed the file and return a real filesystem path.
+import libDarwinArm64 from "../dist/darwin-arm64/libyoga.dylib" with { type: "file" };
+import libDarwinX64 from "../dist/darwin-x64/libyoga.dylib" with { type: "file" };
+import libLinuxX64 from "../dist/linux-x64/libyoga.so" with { type: "file" };
+import libLinuxArm64 from "../dist/linux-arm64/libyoga.so" with { type: "file" };
+import libWindowsX64 from "../dist/windows-x64/yoga.dll" with { type: "file" };
+
+function getEmbeddedLibPath(): string | undefined {
+  if (process.platform === "darwin" && process.arch === "arm64") {
+    return libDarwinArm64;
+  }
+  if (process.platform === "darwin" && process.arch === "x64") {
+    return libDarwinX64;
+  }
+  if (process.platform === "linux" && process.arch === "x64") {
+    return libLinuxX64;
+  }
+  if (process.platform === "linux" && process.arch === "arm64") {
+    return libLinuxArm64;
+  }
+  if (process.platform === "win32") {
+    return libWindowsX64;
   }
   return undefined;
-})();
+}
+
+const embeddedLib = getEmbeddedLibPath();
 
 function getLibPath(): string {
   // Check local development path (zig-out) first for development

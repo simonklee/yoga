@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.25
+
+- Removed top-level await from the native library loader for bytecode-friendly startup.
+- Switched to static file imports to keep embedded native libraries working.
+
 ## 0.2.24
 
 - Renamed package from `@simonklee/yoda` to `@simonklee/yoga`.
