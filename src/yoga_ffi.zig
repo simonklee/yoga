@@ -106,7 +106,7 @@ pub export fn ygConfigIsExperimentalFeatureEnabled(config: YGConfigConstRef, fea
 
 /// Sets a custom logger
 pub export fn ygConfigSetLogger(config: YGConfigRef, logger: ?*const anyopaque) void {
-    c.YGConfigSetLogger(config, @ptrCast(logger));
+    c.YGConfigSetLogger(config, @ptrCast(@alignCast(logger)));
 }
 
 /// Sets config context
@@ -121,7 +121,7 @@ pub export fn ygConfigGetContext(config: YGConfigConstRef) ?*anyopaque {
 
 /// Sets clone node function
 pub export fn ygConfigSetCloneNodeFunc(config: YGConfigRef, cloneNodeFunc: ?*const anyopaque) void {
-    c.YGConfigSetCloneNodeFunc(config, @ptrCast(cloneNodeFunc));
+    c.YGConfigSetCloneNodeFunc(config, @ptrCast(@alignCast(cloneNodeFunc)));
 }
 
 //=============================================================================
