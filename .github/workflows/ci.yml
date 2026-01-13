@@ -16,16 +16,16 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             target: linux-x64
             lib: libyoga.so
-          - os: macos-latest
+          - os: macos-15
             target: darwin-arm64
             lib: libyoga.dylib
-          - os: macos-13
+          - os: macos-15-intel
             target: darwin-x64
             lib: libyoga.dylib
-          - os: windows-latest
+          - os: windows-2025
             target: windows-x64
             lib: yoga.dll
       fail-fast: true
@@ -43,12 +43,7 @@ jobs:
           version: 0.15.2
 
       - name: Build
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_on: error
-          command: zig build -Doptimize=ReleaseFast
+        run: zig build -Doptimize=ReleaseFast
 
       - name: Run Zig tests
         run: zig build test
@@ -94,12 +89,7 @@ jobs:
           version: 0.15.2
 
       - name: Build for Linux ARM64
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_on: error
-          command: zig build -Doptimize=ReleaseFast -Dtarget=aarch64-linux-gnu
+        run: zig build -Doptimize=ReleaseFast -Dtarget=aarch64-linux-gnu
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
