@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.30
+
+- Simplified build scripts to a single `build:*` naming scheme for native and TypeScript builds.
+- Updated docs, examples, and CI to use the new script names.
+
 ## 0.2.29
 
 - Benchmarks now support a layout-only mode and reuse child references for fairer comparisons.
@@ -7,7 +12,7 @@
 
 ## 0.2.28
 
-- Made `build:native` use ReleaseFast, added `build:native:dev`, and introduced `build:zig:linux-arm64`.
+- Made `build:native` use ReleaseFast, added `build:native:dev`, and introduced `build:native:linux-arm64`.
 - Added `clean:native` script to remove `dist/` and `zig-out/`.
 
 ## 0.2.27

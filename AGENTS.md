@@ -19,20 +19,23 @@ Native build:
 ```bash
 zig build                       # Debug build (required at start of work)
 zig build -Doptimize=ReleaseFast # Release build
-bun run build:zig                # Release build via package.json
-bun run build:zig:dev            # Debug build via package.json
+bun run build:native:dev         # Debug build + dist placeholders
+bun run build:native             # Release build + dist placeholders
+bun run build:native:linux-arm64 # Release build for Linux ARM64 (cross-compile)
 ```
 
 TypeScript build:
 
 ```bash
-bun run build                    # tsc -> dist/
+bun run build:ts                 # tsc -> dist/
+bun run build                    # alias for build:ts
 ```
 
 Tests:
 
 ```bash
 zig build test                   # Zig tests
+bun run build:native:dev         # Prepare dist placeholders for Bun tests
 bun test                         # Bun tests (includes .test.ts in scripts/)
 ```
 
@@ -53,7 +56,7 @@ bun run scripts/test-compile.ts
 
 ## Workflow Requirements
 
-- Always start by running `zig build` to ensure no stale binaries.
+- Always start by running `zig build` to ensure no stale binaries (or `bun run build:native:dev` if you plan to run `bun test`).
 - Reproduce every bug with a `zig build test` or `bun test` before fixing it.
 - After meaningful changes: update `CHANGELOG.md` and bump `package.json` version.
 

@@ -60,20 +60,23 @@ Requirements: Bun and Zig 0.15.2+.
 # Build the native library (debug)
 zig build
 
+# Build native library and dist placeholders (debug)
+bun run build:native:dev
+
 # Build the native library (release)
 zig build -Doptimize=ReleaseFast
 
-# Build native library and prepare dist placeholders (ReleaseFast, for bun --compile)
+# Build native library and dist placeholders (release, for bun --compile)
 bun run build:native
 
-# Build native library and placeholders (debug)
-bun run build:native:dev
-
 # Build TypeScript to dist/
+bun run build:ts
+# or
 bun run build
 
 # Tests
 zig build test
+bun run build:native:dev # Prepare dist placeholders for bun test
 bun test
 ```
 

@@ -1,6 +1,6 @@
 {
   "name": "@simonklee/yoga",
-  "version": "0.2.29",
+  "version": "0.2.30",
   "description": "A fast FFI wrapper for Facebook's Yoga layout engine for Bun, providing a yoga-layout compatible API",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,14 +26,13 @@
     "url": "https://github.com/simonklee/yoga"
   },
   "scripts": {
-    "build:zig": "zig build -Doptimize=ReleaseFast",
-    "build:zig:dev": "zig build",
-    "build:zig:linux-arm64": "zig build -Doptimize=ReleaseFast -Dtarget=aarch64-linux-gnu",
-    "build:native": "bun run build:zig && bun run scripts/copy-native-to-dist.ts",
-    "build:native:dev": "bun run build:zig:dev && bun run scripts/copy-native-to-dist.ts",
+    "build": "bun run build:ts",
+    "build:ts": "tsc -p tsconfig.json",
+    "build:native": "zig build -Doptimize=ReleaseFast && bun run scripts/copy-native-to-dist.ts",
+    "build:native:dev": "zig build && bun run scripts/copy-native-to-dist.ts",
+    "build:native:linux-arm64": "zig build -Doptimize=ReleaseFast -Dtarget=aarch64-linux-gnu",
     "clean:native": "bun run scripts/clean-native.ts",
-    "build": "tsc -p tsconfig.json",
-    "prepublishOnly": "bun run build",
+    "prepublishOnly": "bun run build:ts",
     "test": "bun test",
     "bench": "bun run bench.ts"
   },

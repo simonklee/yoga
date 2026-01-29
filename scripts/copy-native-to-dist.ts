@@ -8,7 +8,10 @@
  * Also creates placeholder files for other platforms so the bundler can resolve
  * all imports (only the current platform's library will actually be used).
  *
- * Usage: bun run scripts/copy-native-to-dist.ts
+ * Usage:
+ *   bun run build:native
+ *   bun run build:native:dev
+ *   bun run scripts/copy-native-to-dist.ts
  */
 
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
