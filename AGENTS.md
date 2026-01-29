@@ -10,7 +10,6 @@ dynamic library from Yoga's C/C++ sources, and `src/index.ts` loads it via
 - `src/index.ts`: TypeScript bindings, runtime loader, Node/Config classes.
 - `build.zig` / `build.zig.zon`: Zig build and Yoga dependency.
 - `scripts/`: API completeness checks and compile helpers.
-- `progress.md`: project decisions and progress notes.
 - `CHANGELOG.md` + `package.json`: versioning and release notes.
 
 ## Commands
